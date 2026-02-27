@@ -9,15 +9,19 @@ import DTH from './pages/DTH';
 import BookConnection from './pages/BookConnection';
 import Support from './pages/Support';
 
-// Admin Imports
 import AdminLayout from './components/admin/AdminLayout';
 import AdminDashboard from './pages/admin/Dashboard';
 import AdminRequests from './pages/admin/Requests';
 import RequestDetail from './pages/admin/RequestDetail';
+import Agents from './pages/admin/Agents';
+import Customers from './pages/admin/Customers';
+import Reports from './pages/admin/Reports';
+import Payments from './pages/admin/Payments';
+import ActiveAgents from './pages/admin/ActiveAgents';
 
 const ScrollToTop = () => {
   const { pathname } = useLocation();
-  
+
   React.useEffect(() => {
     window.scrollTo(0, 0);
   }, [pathname]);
@@ -44,8 +48,13 @@ const App: React.FC = () => {
         {/* Admin Routes */}
         <Route path="/admin" element={<AdminLayout />}>
           <Route index element={<AdminDashboard />} />
+          <Route path="agents" element={<Agents />} />
+          <Route path="customers" element={<Customers />} />
           <Route path="requests" element={<AdminRequests />} />
           <Route path="requests/:id" element={<RequestDetail />} />
+          <Route path="reports" element={<Reports />} />
+          <Route path="payments" element={<Payments />} />
+          <Route path="active-agents" element={<ActiveAgents />} />
           <Route path="settings" element={<div className="p-8 text-center text-gray-500">Settings Coming Soon</div>} />
         </Route>
 

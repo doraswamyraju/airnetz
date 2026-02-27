@@ -1,6 +1,6 @@
 import React from 'react';
 import { Outlet, NavLink, useLocation, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, ClipboardList, Settings, LogOut, Menu, X, Bell } from 'lucide-react';
+import { LayoutDashboard, Users, UserCircle, ClipboardList, Settings, LogOut, Menu, X, Bell, BarChart3, CreditCard, MapPin } from 'lucide-react';
 
 const AdminLayout: React.FC = () => {
   const [isSidebarOpen, setIsSidebarOpen] = React.useState(false);
@@ -14,7 +14,12 @@ const AdminLayout: React.FC = () => {
 
   const navItems = [
     { path: '/admin', icon: LayoutDashboard, label: 'Dashboard', end: true },
+    { path: '/admin/agents', icon: Users, label: 'Agents' },
+    { path: '/admin/customers', icon: UserCircle, label: 'Customers' },
     { path: '/admin/requests', icon: ClipboardList, label: 'Requests' },
+    { path: '/admin/reports', icon: BarChart3, label: 'Reports' },
+    { path: '/admin/payments', icon: CreditCard, label: 'Payments' },
+    { path: '/admin/active-agents', icon: MapPin, label: 'Live Tracking' },
     { path: '/admin/settings', icon: Settings, label: 'Settings' },
   ];
 
@@ -22,14 +27,14 @@ const AdminLayout: React.FC = () => {
     <div className="min-h-screen bg-gray-50 flex font-sans text-slate-900">
       {/* Mobile Sidebar Overlay */}
       {isSidebarOpen && (
-        <div 
+        <div
           className="fixed inset-0 bg-black/50 z-40 lg:hidden"
           onClick={() => setIsSidebarOpen(false)}
         />
       )}
 
       {/* Sidebar */}
-      <aside 
+      <aside
         className={`
           fixed lg:static inset-y-0 left-0 z-50 w-64 bg-white border-r border-gray-200 transform transition-transform duration-200 ease-in-out
           ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
@@ -47,8 +52,8 @@ const AdminLayout: React.FC = () => {
               end={item.end}
               className={({ isActive }) => `
                 flex items-center gap-3 px-4 py-3 rounded-lg transition-colors
-                ${isActive 
-                  ? 'bg-brand-orange/10 text-brand-orange font-medium' 
+                ${isActive
+                  ? 'bg-brand-orange/10 text-brand-orange font-medium'
                   : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'}
               `}
             >
@@ -59,7 +64,7 @@ const AdminLayout: React.FC = () => {
         </nav>
 
         <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-100">
-          <button 
+          <button
             onClick={() => navigate('/')}
             className="flex items-center gap-3 px-4 py-3 w-full text-left text-gray-600 hover:bg-red-50 hover:text-red-600 rounded-lg transition-colors"
           >
@@ -73,7 +78,7 @@ const AdminLayout: React.FC = () => {
       <div className="flex-1 flex flex-col min-w-0">
         {/* Top Header */}
         <header className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-4 lg:px-8 sticky top-0 z-30">
-          <button 
+          <button
             onClick={() => setIsSidebarOpen(true)}
             className="p-2 -ml-2 text-gray-600 hover:bg-gray-100 rounded-lg lg:hidden"
           >
