@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Shield, User, Briefcase, Lock, Mail, ArrowRight } from 'lucide-react';
+import { Shield, User, Briefcase, Lock, Mail, ArrowRight, AlertCircle } from 'lucide-react';
 import { UserRole } from '../types';
 
 const Login: React.FC = () => {
