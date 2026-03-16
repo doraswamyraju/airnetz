@@ -52,10 +52,10 @@ const BookConnection: React.FC = () => {
           </div>
           <h2 className="text-3xl font-display font-bold text-gray-900 mb-3">Request Received!</h2>
           <p className="text-gray-600 mb-8 leading-relaxed text-lg">
-            Thank you for choosing Airnetz. Our representative will call you at <strong className="text-gray-900">{formData.phone}</strong> within 24 hours to schedule the installation.
+            Thank you for choosing Airnetz. Please check your email for <strong>login credentials</strong> so you can track your installation in our customer portal.
           </p>
           <div className="bg-gray-50 rounded-xl p-4 mb-8 text-sm text-gray-500">
-             Order Reference: <span className="font-mono font-bold text-gray-900">#{Math.floor(Math.random() * 100000)}</span>
+             Our representative will also call you shortly.
           </div>
           <button 
             onClick={() => window.location.href = '/'} 

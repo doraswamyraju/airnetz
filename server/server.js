@@ -160,50 +160,85 @@ app.get('/api/plans', async (req, res) => {
 
 // --- PUBLIC & ADMIN LEADS ---
 
-// Public Booking
+// Public Booking (Enhanced: Creates Lead + Account + Installation Request)
 app.post('/api/public/book', async (req, res) => {
   const { name, email, phone, address, locality, serviceType, plan } = req.body;
-  const sql = 'INSERT INTO leads (name, email, phone, address, locality, service_type, plan) VALUES (?, ?, ?, ?, ?, ?, ?)';
+  
   try {
-    const [result] = await pool.query(sql, [name, email, phone, address, locality, serviceType, plan]);
-    const leadId = result.insertId;
+    // 1. Create Lead Log
+    const leadSql = 'INSERT INTO leads (name, email, phone, address, locality, service_type, plan) VALUES (?, ?, ?, ?, ?, ?, ?)';
+    const [leadResult] = await pool.query(leadSql, [name, email, phone, address, locality, serviceType, plan]);
+    const leadId = leadResult.insertId;
 
-    // Send Booking Confirmation Email
+    // 2. Create User Account Instantly
+    const initialPassword = 'pass' + Math.floor(1000 + Math.random() * 9000);
+    const userSql = 'INSERT IGNORE INTO users (name, email, password, role) VALUES (?, ?, ?, ?)';
+    const [userResult] = await pool.query(userSql, [name, email, initialPassword, 'customer']);
+    
+    // If user already exists (by email), we should still proceed with creating the service request for them
+    let userId;
+    if (userResult.insertId) {
+      userId = userResult.insertId;
+      
+      // 3. Create Customer Profile
+      const customerSql = 'INSERT INTO customers (user_id, address, phone, status) VALUES (?, ?, ?, ?)';
+      await pool.query(customerSql, [userId, address, phone, 'active']);
+    } else {
+      // User already exists, find their ID
+      const [existingUsers] = await pool.query('SELECT id FROM users WHERE email = ?', [email]);
+      userId = existingUsers[0].id;
+    }
+
+    // 4. Get Customer ID
+    const [customers] = await pool.query('SELECT id FROM customers WHERE user_id = ?', [userId]);
+    const customerId = customers[0].id;
+
+    // 5. Create Installation Service Request
+    const requestId = `SR-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`;
+    const srSql = 'INSERT INTO service_requests (id, customer_id, type, description, address, phone, requested_date, status) VALUES (?, ?, ?, ?, ?, ?, CURDATE(), ?)';
+    await pool.query(srSql, [requestId, customerId, 'Installation', `New ${serviceType} connection request: ${plan}`, address, phone, 'Pending']);
+
+    // 6. Send Welcome & Tracking Email
     const mailOptions = {
       from: `"Airnetz Support" <${process.env.EMAIL_USER}>`,
       to: email,
-      subject: 'Connection Request Received - Airnetz Tirupati',
+      subject: 'Welcome to Airnetz - Track Your Installation!',
       html: `
         <div style="font-family: sans-serif; color: #333; max-width: 600px; margin: auto; border: 1px solid #eee; padding: 20px; border-radius: 15px;">
-          <h2 style="color: #f97316;">We've Received Your Request!</h2>
+          <h2 style="color: #f97316;">Welcome to the Airnetz Family!</h2>
           <p>Hello ${name},</p>
-          <p>Thank you for choosing Airnetz. We have received your request for a new <strong>${serviceType}</strong> connection.</p>
-          <div style="background: #f9fafb; padding: 15px; border-radius: 10px; margin: 20px 0;">
-            <p style="margin: 0;"><strong>Details Provided:</strong></p>
-            <ul style="list-style: none; padding: 0;">
-              <li>Phone: ${phone}</li>
-              <li>Area: ${locality}</li>
-              <li>Requested Plan: ${plan || 'To be decided'}</li>
-            </ul>
+          <p>Your request for a <strong>${serviceType}</strong> connection has been received and your customer account is now active!</p>
+          
+          <div style="background: #fdf2f2; border: 1px solid #fecaca; padding: 15px; border-radius: 10px; margin: 20px 0;">
+            <p style="margin: 0; font-weight: bold; color: #991b1b;">Your Customer Portal Login:</p>
+            <p style="margin: 5px 0;"><strong>User ID (Email):</strong> ${email}</p>
+            <p style="margin: 5px 0;"><strong>Temporary Password:</strong> ${initialPassword}</p>
           </div>
-          <p>Our representative will contact you at <strong>${phone}</strong> within 24 hours to schedule the installation.</p>
-          <p>Once your connection is verified, you will receive another email with your <strong>account login details</strong>.</p>
+
+          <p><strong>Tracking Your Installation:</strong></p>
+          <p>You can now log in to the portal to track your installation progress (Reference: <strong>${requestId}</strong>) and manage your connection.</p>
+          
+          <div style="text-align: center; margin: 30px 0;">
+            <a href="http://airnetz.sriddha.com/login" style="background: #f97316; color: white; padding: 12px 30px; border-radius: 8px; text-decoration: none; font-weight: bold; display: inline-block;">Login to Customer Portal</a>
+          </div>
+
+          <p>Our representative will also call you at <strong>${phone}</strong> within 24 hours.</p>
           <hr style="border: none; border-top: 1px solid #eee; margin: 25px 0;">
-          <p style="font-size: 12px; color: #666; text-align: center;">Airnetz Tirupati - Connectivity Redefined</p>
+          <p style="font-size: 12px; color: #666; text-align: center;">Airnetz Tirupati - High Speed Fiber Broadband</p>
         </div>
       `
     };
 
     try {
       await transporter.sendMail(mailOptions);
-      console.log(`Booking confirmation sent to ${email}`);
+      console.log(`Welcome/Tracking email sent to ${email}`);
     } catch (e) {
-      console.error('Initial booking email failed:', e);
+      console.error('Welcome email failed:', e);
     }
 
-    res.json({ success: true, leadId });
+    res.json({ success: true, leadId, requestId });
   } catch (error) {
-    console.error('Booking error:', error);
+    console.error('Booking/Account creation error:', error);
     res.status(500).json({ error: error.message });
   }
 });

@@ -8,16 +8,22 @@ import ActivePlan from '../../components/customer/ActivePlan';
 
 const CustomerDashboard: React.FC = () => {
   const [profile, setProfile] = React.useState<any>(null);
+  const [requests, setRequests] = React.useState<any[]>([]);
   const [loading, setLoading] = React.useState(true);
   const user = JSON.parse(localStorage.getItem('user') || '{}');
 
   React.useEffect(() => {
     const loadData = async () => {
       try {
-        const data = await api.getCustomerProfile(user.id);
-        setProfile(data);
+        const profileData = await api.getCustomerProfile(user.id);
+        setProfile(profileData);
+        
+        if (profileData?.id) {
+          const requestData = await api.getCustomerRequests(profileData.id);
+          setRequests(requestData);
+        }
       } catch (err) {
-        console.error('Failed to load profile');
+        console.error('Failed to load dashboard data');
       } finally {
         setLoading(false);
       }
@@ -51,11 +57,72 @@ const CustomerDashboard: React.FC = () => {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-10">
           <div className="lg:col-span-2">
-            <ActivePlan 
-              planName={profile?.plan_name} 
-              speed={profile?.speed_mbps}
-              expiryDate="Next Month"
-            />
+            {profile?.plan_name ? (
+              <ActivePlan 
+                planName={profile?.plan_name} 
+                speed={profile?.speed_mbps}
+                expiryDate="Next Month"
+              />
+            ) : (
+              <div className="bg-gradient-to-br from-primary-600 to-indigo-700 p-8 rounded-[2.5rem] text-white shadow-xl shadow-primary-500/20">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                  <div>
+                    <span className="px-3 py-1 bg-white/20 rounded-full text-xs font-bold tracking-widest uppercase mb-4 inline-block">Account Status</span>
+                    <h2 className="text-4xl font-display font-bold mb-2">Pending Installation</h2>
+                    <p className="text-primary-100/80 max-w-md">Our team is preparing your fiber connection. Your chosen plan will be activated once installation is complete.</p>
+                  </div>
+                  <div className="bg-white/10 p-6 rounded-3xl backdrop-blur-md border border-white/10">
+                    <Wifi size={48} className="animate-pulse" />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Installation Tracking (If any) */}
+            {requests.some(r => r.type === 'Installation' && r.status !== 'Completed') && (
+              <div className="mt-8 bg-white p-8 rounded-[2.5rem] shadow-sm border border-orange-100 overflow-hidden relative">
+                <div className="absolute top-0 right-0 p-4 opacity-10">
+                  <Package size={80} className="text-brand-orange" />
+                </div>
+                <h3 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+                  <Zap size={20} className="text-brand-orange" />
+                  Installation Status
+                </h3>
+                
+                <div className="relative flex items-center justify-between max-w-2xl mx-auto">
+                    {/* Progress Line */}
+                    <div className="absolute left-0 right-0 h-1 bg-gray-100 top-1/2 -translate-y-1/2 z-0"></div>
+                    <div className={`absolute left-0 h-1 bg-brand-orange top-1/2 -translate-y-1/2 z-0 transition-all duration-1000`} 
+                         style={{ width: requests.find(r => r.type === 'Installation')?.status === 'In Progress' ? '50%' : '5%' }}></div>
+                    
+                    {[
+                      { label: 'Booked', status: 'Pending' },
+                      { label: 'Assigned', status: 'In Progress' },
+                      { label: 'Activated', status: 'Completed' }
+                    ].map((step, i) => {
+                      const currentStatus = requests.find(r => r.type === 'Installation')?.status;
+                      const isActive = i === 0 || (i === 1 && currentStatus === 'In Progress') || (i === 2 && currentStatus === 'Completed');
+                      return (
+                        <div key={i} className="relative z-10 flex flex-col items-center gap-2">
+                           <div className={`w-10 h-10 rounded-full flex items-center justify-center border-4 border-white shadow-sm transition-colors ${isActive ? 'bg-brand-orange text-white' : 'bg-gray-200 text-gray-400'}`}>
+                              {i + 1}
+                           </div>
+                           <span className={`text-xs font-bold uppercase tracking-wider ${isActive ? 'text-gray-900' : 'text-gray-400'}`}>{step.label}</span>
+                        </div>
+                      );
+                    })}
+                </div>
+                
+                <div className="mt-8 p-4 bg-orange-50 rounded-2xl flex items-center justify-between">
+                   <p className="text-sm text-orange-800 font-medium whitespace-pre-wrap">
+                      {requests.find(r => r.type === 'Installation')?.status === 'In Progress' 
+                        ? 'Technician has been assigned. They will call you shortly.' 
+                        : 'Your connection request is in queue. Expect a call within 24 hours.'}
+                   </p>
+                   <span className="text-[10px] font-black uppercase text-brand-orange tracking-widest">{requests.find(r => r.type === 'Installation')?.id}</span>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Quick Actions */}
@@ -103,26 +170,31 @@ const CustomerDashboard: React.FC = () => {
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
            {/* Recent Activity */}
-           <div className="bg-white rounded-[2.5rem] shadow-sm border border-gray-100 overflow-hidden">
+            <div className="bg-white rounded-[2.5rem] shadow-sm border border-gray-100 overflow-hidden">
               <div className="p-8 border-b border-gray-50">
                 <h3 className="text-xl font-bold text-gray-900">Recent Service Activity</h3>
               </div>
               <div className="p-8 space-y-6">
-                {[
-                  { title: 'Payment Successful', date: 'March 10, 2026', desc: 'Monthly subscription for Turbo Plan.', type: 'payment' },
-                  { title: 'Support Ticket Closed', date: 'Feb 15, 2026', desc: 'Resolved: Slow WiFi speeds in bedroom.', type: 'support' },
-                ].map((act, i) => (
-                  <div key={i} className="flex gap-4">
-                    <div className={`w-2 h-2 rounded-full mt-2 ${act.type === 'payment' ? 'bg-green-500' : 'bg-blue-500'}`}></div>
-                    <div>
-                      <h5 className="font-bold text-gray-900 text-sm">{act.title}</h5>
-                      <p className="text-xs text-gray-500 mt-1">{act.desc}</p>
-                      <span className="text-[10px] text-gray-400 uppercase font-bold tracking-wider mt-2 block">{act.date}</span>
+                {requests.length > 0 ? (
+                  requests.map((act, i) => (
+                    <div key={i} className="flex gap-4">
+                      <div className={`w-2 h-2 rounded-full mt-2 ${act.status === 'Completed' ? 'bg-green-500' : 'bg-blue-500'}`}></div>
+                      <div>
+                        <h5 className="font-bold text-gray-900 text-sm">{act.type} {act.status}</h5>
+                        <p className="text-xs text-gray-500 mt-1">{act.description}</p>
+                        <span className="text-[10px] text-gray-400 uppercase font-bold tracking-wider mt-2 block">
+                          {new Date(act.requested_date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+                        </span>
+                      </div>
                     </div>
+                  ))
+                ) : (
+                  <div className="text-center py-6">
+                    <p className="text-gray-400 text-sm">No recent activity found.</p>
                   </div>
-                ))}
+                )}
               </div>
-           </div>
+            </div>
 
            {/* Security / Router Info */}
            <div className="bg-white rounded-[2.5rem] shadow-sm border border-gray-100 p-8 flex flex-col justify-center">
