@@ -3,8 +3,10 @@ import {
   Wifi, CreditCard, Headphones, Package, 
   ChevronRight, ArrowRight, Zap, ShieldCheck 
 } from 'lucide-react';
+import { api } from '../../services/api';
 import ActivePlan from '../../components/customer/ActivePlan';
 
+const CustomerDashboard: React.FC = () => {
   const [profile, setProfile] = React.useState<any>(null);
   const [loading, setLoading] = React.useState(true);
   const user = JSON.parse(localStorage.getItem('user') || '{}');
@@ -23,7 +25,14 @@ import ActivePlan from '../../components/customer/ActivePlan';
     if (user.id) loadData();
   }, [user.id]);
 
-  if (loading) return <div className="p-8 text-center animate-pulse">Loading Portal...</div>;
+  if (loading) return (
+    <div className="min-h-screen flex items-center justify-center bg-slate-50">
+      <div className="text-center">
+        <div className="w-16 h-16 border-4 border-primary-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+        <p className="text-gray-500 font-medium">Syncing with Network...</p>
+      </div>
+    </div>
+  );
 
   return (
     <div className="min-h-screen bg-slate-50 pb-12 px-4 sm:px-6 lg:px-8 font-sans">
@@ -43,8 +52,8 @@ import ActivePlan from '../../components/customer/ActivePlan';
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-10">
           <div className="lg:col-span-2">
             <ActivePlan 
-              planName={profile?.plan_name || 'Broadband 100'} 
-              speed={profile?.speed_mbps || 100}
+              planName={profile?.plan_name} 
+              speed={profile?.speed_mbps}
               expiryDate="Next Month"
             />
           </div>

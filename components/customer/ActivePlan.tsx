@@ -19,13 +19,13 @@ const ActivePlan: React.FC<ActivePlanProps> = ({
       <div className="relative z-10 flex flex-col md:flex-row justify-between gap-8">
         <div>
           <span className="inline-block px-3 py-1 bg-brand-orange text-white text-xs font-bold rounded-full mb-4">ACTIVE PLAN</span>
-          <h3 className="text-4xl font-extrabold mb-2">Turbo 90 Mbps</h3>
+          <h3 className="text-4xl font-extrabold mb-2">{planName}</h3>
           <p className="text-slate-400 font-medium mb-8">Pure Fiber Connection • Symmetrical Speed</p>
           
           <div className="flex flex-wrap gap-8 items-center">
             <div>
-              <div className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">Data Used</div>
-              <div className="text-2xl font-bold">450 GB / <span className="text-sm opacity-50 font-medium">Unlimited</span></div>
+              <div className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">Bandwidth</div>
+              <div className="text-2xl font-bold">{speed} Mbps <span className="text-sm opacity-50 font-medium">Unlimited</span></div>
             </div>
             <div>
               <div className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">Uptime</div>
