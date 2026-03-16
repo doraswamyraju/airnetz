@@ -55,6 +55,20 @@ CREATE TABLE IF NOT EXISTS service_requests (
     FOREIGN KEY (agent_id) REFERENCES users(id) ON DELETE SET NULL
 );
 
+-- Public Leads (For new connection requests)
+CREATE TABLE IF NOT EXISTS leads (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    email VARCHAR(255) NOT NULL,
+    phone VARCHAR(20) NOT NULL,
+    address TEXT NOT NULL,
+    locality VARCHAR(255),
+    service_type VARCHAR(50),
+    plan VARCHAR(100),
+    status ENUM('New', 'Contacted', 'Assigned', 'Converted', 'Rejected') DEFAULT 'New',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
 -- Payments
 CREATE TABLE IF NOT EXISTS payments (
     id INT AUTO_INCREMENT PRIMARY KEY,

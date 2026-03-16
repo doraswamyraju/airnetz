@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { ServiceType } from '../types';
 import { CheckCircle, AlertCircle, ShieldCheck, Clock, Award, Calendar, ChevronRight } from 'lucide-react';
+import { api } from '../services/api';
 
 const BookConnection: React.FC = () => {
   const location = useLocation();
@@ -25,15 +26,21 @@ const BookConnection: React.FC = () => {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setStatus('submitting');
     
-    // Simulate API call
-    setTimeout(() => {
-      console.log('Form Submitted:', formData);
-      setStatus('success');
-    }, 1500);
+    try {
+      const res = await api.bookConnection(formData);
+      if (res.success) {
+        setStatus('success');
+      } else {
+        setStatus('error');
+      }
+    } catch (err) {
+      console.error('Booking failed', err);
+      setStatus('error');
+    }
   };
 
   if (status === 'success') {

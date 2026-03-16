@@ -162,6 +162,24 @@ app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, '../dist/index.html'));
 });
 
+// Public Booking
+app.post('/api/public/book', (req, res) => {
+  const { name, email, phone, address, locality, serviceType, plan } = req.body;
+  const sql = 'INSERT INTO leads (name, email, phone, address, locality, service_type, plan) VALUES (?, ?, ?, ?, ?, ?, ?)';
+  db.query(sql, [name, email, phone, address, locality, serviceType, plan], (err, result) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json({ success: true, leadId: result.insertId });
+  });
+});
+
+// Admin Leads
+app.get('/api/admin/leads', (req, res) => {
+  db.query('SELECT * FROM leads ORDER BY created_at DESC', (err, results) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json(results);
+  });
+});
+
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
