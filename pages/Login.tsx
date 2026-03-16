@@ -7,20 +7,44 @@ const Login: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [role, setRole] = useState<UserRole>('customer');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError('');
+    setLoading(true);
     
-    // Mock login logic
-    console.log(`Logging in as ${role}:`, { email, password });
-    
-    if (role === 'admin') {
-      navigate('/admin');
-    } else if (role === 'employee') {
-      navigate('/agent');
-    } else {
-      navigate('/customer');
+    try {
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password, role }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        // Store user info in localStorage for session handling
+        localStorage.setItem('user', JSON.stringify(data.user));
+        
+        if (role === 'admin') {
+          navigate('/admin');
+        } else if (role === 'employee') {
+          navigate('/agent');
+        } else {
+          navigate('/customer');
+        }
+      } else {
+        setError(data.message || 'Invalid credentials');
+      }
+    } catch (err) {
+      setError('Connection refused. Is the backend running?');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -108,14 +132,24 @@ const Login: React.FC = () => {
               <button type="button" className="text-sm font-bold text-primary-600 hover:text-primary-700">Forgot Password?</button>
             </div>
 
+            {error && (
+              <div className="bg-red-50 text-red-600 p-4 rounded-xl text-sm font-bold flex items-center gap-2">
+                <AlertCircle size={18} />
+                {error}
+              </div>
+            )}
+
             <button
               type="submit"
+              disabled={loading}
               className={`w-full py-4 rounded-2xl text-white font-bold text-lg shadow-xl transition-all hover:-translate-y-1 active:scale-95 flex items-center justify-center gap-2 ${
+                loading ? 'opacity-70 cursor-not-allowed' : ''
+              } ${
                 role === 'admin' ? 'bg-slate-900 shadow-slate-200' : 
                 role === 'employee' ? 'bg-orange-600 shadow-orange-200' : 'bg-primary-600 shadow-primary-200'
               }`}
             >
-              Sign In <ArrowRight size={20} />
+              {loading ? 'Signing In...' : 'Sign In'} <ArrowRight size={20} />
             </button>
           </form>
         </div>
