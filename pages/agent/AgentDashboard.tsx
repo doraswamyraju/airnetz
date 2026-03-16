@@ -1,3 +1,8 @@
+import React from 'react';
+import { 
+  Users, Calendar, CheckCircle, Clock, 
+  TrendingUp, AlertCircle 
+} from 'lucide-react';
 import AssignedJobs from '../../components/agent/AssignedJobs';
 
 const AgentDashboard: React.FC = () => {

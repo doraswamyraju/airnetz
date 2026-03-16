@@ -1,3 +1,8 @@
+import React from 'react';
+import { 
+  Wifi, CreditCard, Headphones, Package, 
+  ChevronRight, ArrowRight, Zap, ShieldCheck 
+} from 'lucide-react';
 import ActivePlan from '../../components/customer/ActivePlan';
 
 const CustomerDashboard: React.FC = () => {
