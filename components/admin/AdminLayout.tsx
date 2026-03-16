@@ -1,6 +1,6 @@
 import React from 'react';
 import { Outlet, NavLink, useLocation, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, Users, UserCircle, ClipboardList, Settings, LogOut, Menu, X, Bell, BarChart3, CreditCard, MapPin } from 'lucide-react';
+import { LayoutDashboard, Users, UserCircle, ClipboardList, Settings, LogOut, Menu, X, Bell, BarChart3, CreditCard, MapPin, UserPlus } from 'lucide-react';
 
 const AdminLayout: React.FC = () => {
   const [isSidebarOpen, setIsSidebarOpen] = React.useState(false);
@@ -15,6 +15,7 @@ const AdminLayout: React.FC = () => {
   const navItems = [
     { path: '/admin', icon: LayoutDashboard, label: 'Dashboard', end: true },
     { path: '/admin/agents', icon: Users, label: 'Agents' },
+    { path: '/admin/leads', icon: UserPlus, label: 'Leads' },
     { path: '/admin/customers', icon: UserCircle, label: 'Customers' },
     { path: '/admin/requests', icon: ClipboardList, label: 'Requests' },
     { path: '/admin/reports', icon: BarChart3, label: 'Reports' },

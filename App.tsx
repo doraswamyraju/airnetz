@@ -60,6 +60,7 @@ const App: React.FC = () => {
         <Route path="/admin" element={<AdminLayout />}>
           <Route index element={<AdminDashboard />} />
           <Route path="agents" element={<Agents />} />
+          <Route path="leads" element={<div className="p-8 text-center text-gray-500">Leads Management Coming Soon</div>} />
           <Route path="customers" element={<Customers />} />
           <Route path="requests" element={<AdminRequests />} />
           <Route path="requests/:id" element={<RequestDetail />} />
