@@ -65,5 +65,21 @@ export const api = {
   getPlans: async () => {
     const res = await fetch(`${API_BASE}/plans`);
     return res.json();
+  },
+
+  // Public
+  bookConnection: async (data: any) => {
+    const res = await fetch(`${API_BASE}/public/book`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+    return res.json();
+  },
+
+  // Admin Leads
+  getLeads: async () => {
+    const res = await fetch(`${API_BASE}/admin/leads`);
+    return res.json();
   }
 };

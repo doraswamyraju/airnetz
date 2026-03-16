@@ -81,12 +81,12 @@ CREATE TABLE IF NOT EXISTS payments (
 );
 
 -- Initial Mock Data
-INSERT INTO users (name, email, password, role) VALUES 
+INSERT IGNORE INTO users (name, email, password, role) VALUES 
 ('Admin User', 'admin@airnetz.com', 'admin123', 'admin'),
 ('Suresh Kumar', 'suresh@agent.com', 'agent123', 'agent'),
 ('Ramesh Gupta', 'ramesh@customer.com', 'pass123', 'customer');
 
-INSERT INTO plans (name, type, price_1m, price_6m, price_12m, speed_mbps) VALUES 
+INSERT IGNORE INTO plans (name, type, price_1m, price_6m, price_12m, speed_mbps) VALUES 
 ('Turbo 50', 'broadband', 499, 2499, 4499, 50),
 ('Turbo 100', 'broadband', 699, 3499, 6499, 100),
 ('Digital IPTV', 'iptv', 300, 1500, 2400, NULL),
