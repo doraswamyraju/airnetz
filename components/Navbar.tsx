@@ -23,6 +23,7 @@ const Navbar: React.FC = () => {
     { name: 'IPTV(DTH) & OTT', path: '/dth' },
     { name: 'Book Connection', path: '/book' },
     { name: 'Support', path: '/support' },
+    { name: 'Login', path: '/login' },
   ];
 
   const isActive = (path: string) => location.pathname === path;
