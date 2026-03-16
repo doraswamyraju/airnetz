@@ -4,6 +4,7 @@ import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import pool from './db.js';
+import nodemailer from 'nodemailer';
 
 dotenv.config();
 
@@ -157,101 +158,110 @@ app.get('/api/plans', async (req, res) => {
   }
 });
 
-// Fallback for React routing (must be after API routes)
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, '../dist/index.html'));
-});
+// --- PUBLIC & ADMIN LEADS ---
 
 // Public Booking
-app.post('/api/public/book', (req, res) => {
+app.post('/api/public/book', async (req, res) => {
   const { name, email, phone, address, locality, serviceType, plan } = req.body;
   const sql = 'INSERT INTO leads (name, email, phone, address, locality, service_type, plan) VALUES (?, ?, ?, ?, ?, ?, ?)';
-  db.query(sql, [name, email, phone, address, locality, serviceType, plan], (err, result) => {
-    if (err) return res.status(500).json({ error: err.message });
+  try {
+    const [result] = await pool.query(sql, [name, email, phone, address, locality, serviceType, plan]);
     res.json({ success: true, leadId: result.insertId });
-  });
+  } catch (error) {
+    console.error('Booking error:', error);
+    res.status(500).json({ error: error.message });
+  }
 });
 
 // Admin Leads
-app.get('/api/admin/leads', (req, res) => {
-  db.query('SELECT * FROM leads ORDER BY created_at DESC', (err, results) => {
-    if (err) return res.status(500).json({ error: err.message });
+app.get('/api/admin/leads', async (req, res) => {
+  try {
+    const [results] = await pool.query('SELECT * FROM leads ORDER BY created_at DESC');
     res.json(results);
-  });
+  } catch (error) {
+    console.error('Leads fetch error:', error);
+    res.status(500).json({ error: error.message });
+  }
 });
 
-import nodemailer from 'nodemailer';
-
-// Email Transporter (Gatla Foundation / SMTP)
+// Email Transporter Config
 const transporter = nodemailer.createTransport({
   host: process.env.EMAIL_HOST,
-  port: process.env.EMAIL_PORT,
-  secure: false, // true for 465, false for other ports
+  port: parseInt(process.env.EMAIL_PORT || '587'),
+  secure: process.env.EMAIL_PORT === '465', // true for 465, false for 587
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS,
   },
+  tls: {
+    rejectUnauthorized: false // Helps with certificate issues
+  }
 });
 
 // Convert Lead to Customer
-app.post('/api/leads/convert', (req, res) => {
+app.post('/api/leads/convert', async (req, res) => {
   const { leadId } = req.body;
-
-  // 1. Get Lead Details
-  db.query('SELECT * FROM leads WHERE id = ?', [leadId], (err, leads) => {
-    if (err || leads.length === 0) return res.status(404).json({ error: 'Lead not found' });
+  try {
+    // 1. Get Lead Details
+    const [leads] = await pool.query('SELECT * FROM leads WHERE id = ?', [leadId]);
+    if (leads.length === 0) return res.status(404).json({ error: 'Lead not found' });
     const lead = leads[0];
 
     // 2. Create User Account
-    const initialPassword = 'pass' + Math.floor(1000 + Math.random() * 9000); // Generate simple password
+    const initialPassword = 'pass' + Math.floor(1000 + Math.random() * 9000);
     const userSql = 'INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, ?)';
     
-    db.query(userSql, [lead.name, lead.email, initialPassword, 'customer'], (err, userResult) => {
-      if (err) return res.status(500).json({ error: 'Email already exists or conversion failed' });
-      const userId = userResult.insertId;
+    const [userResult] = await pool.query(userSql, [lead.name, lead.email, initialPassword, 'customer']);
+    const userId = userResult.insertId;
 
-      // 3. Create Customer Profile
-      const customerSql = 'INSERT INTO customers (user_id, address, phone, status) VALUES (?, ?, ?, ?)';
-      db.query(customerSql, [userId, lead.address, lead.phone, 'active'], (err) => {
-        if (err) return res.status(500).json({ error: 'Failed to create customer profile' });
+    // 3. Create Customer Profile
+    const customerSql = 'INSERT INTO customers (user_id, address, phone, status) VALUES (?, ?, ?, ?)';
+    await pool.query(customerSql, [userId, lead.address, lead.phone, 'active']);
 
-        // 4. Update Lead Status
-        db.query('UPDATE leads SET status = ? WHERE id = ?', ['Converted', leadId], (err) => {
+    // 4. Update Lead Status
+    await pool.query('UPDATE leads SET status = ? WHERE id = ?', ['Converted', leadId]);
           
-          // 5. Send Welcome Email
-          const mailOptions = {
-            from: `"Airnetz Support" <${process.env.EMAIL_USER}>`,
-            to: lead.email,
-            subject: 'Welcome to Airnetz - Your Account is Ready!',
-            html: `
-              <div style="font-family: sans-serif; color: #333; max-width: 600px; margin: auto;">
-                <h2 style="color: #f97316;">Welcome to Airnetz!</h2>
-                <p>Hello ${lead.name},</p>
-                <p>Your high-speed internet connection request has been approved. We have created your customer portal account.</p>
-                <div style="background: #f3f4f6; padding: 20px; border-radius: 10px; margin: 20px 0;">
-                  <p style="margin: 0; font-weight: bold;">Your Login Credentials:</p>
-                  <p><strong>Email:</strong> ${lead.email}</p>
-                  <p><strong>Password:</strong> ${initialPassword}</p>
-                </div>
-                <p>You can login at: <a href="http://airnetz.sriddha.com/login" style="color: #f97316; font-weight: bold;">airnetz.sriddha.com/login</a></p>
-                <p>Please change your password after logging in for the first time.</p>
-                <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 30px 0;">
-                <p style="font-size: 12px; color: #9ca3af;">Airnetz Tirupati - High Speed Fiber Broadband</p>
-              </div>
-            `
-          };
+    // 5. Send Welcome Email
+    const mailOptions = {
+      from: `"Airnetz Support" <${process.env.EMAIL_USER}>`,
+      to: lead.email,
+      subject: 'Welcome to Airnetz - Your Account is Ready!',
+      html: `
+        <div style="font-family: sans-serif; color: #333; max-width: 600px; margin: auto;">
+          <h2 style="color: #f97316;">Welcome to Airnetz!</h2>
+          <p>Hello ${lead.name},</p>
+          <p>Your high-speed internet connection request has been approved. We have created your customer portal account.</p>
+          <div style="background: #f3f4f6; padding: 20px; border-radius: 10px; margin: 20px 0;">
+            <p style="margin: 0; font-weight: bold;">Your Login Credentials:</p>
+            <p><strong>Email:</strong> ${lead.email}</p>
+            <p><strong>Password:</strong> ${initialPassword}</p>
+          </div>
+          <p>You can login at: <a href="http://airnetz.sriddha.com/login" style="color: #f97316; font-weight: bold;">airnetz.sriddha.com/login</a></p>
+          <p>Please change your password after logging in for the first time.</p>
+          <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 30px 0;">
+          <p style="font-size: 12px; color: #9ca3af;">Airnetz Tirupati - High Speed Fiber Broadband</p>
+        </div>
+      `
+    };
 
-          transporter.sendMail(mailOptions, (error, info) => {
-            if (error) {
-              console.error('Email error:', error);
-              return res.json({ success: true, warning: 'Account created but welcome email failed' });
-            }
-            res.json({ success: true, message: 'Customer onboarded successfully' });
-          });
-        });
-      });
-    });
-  });
+    console.log(`Attempting to send welcome email to ${lead.email}...`);
+    try {
+      await transporter.sendMail(mailOptions);
+      console.log('Email sent successfully');
+      res.json({ success: true, message: 'Customer onboarded and email sent' });
+    } catch (emailError) {
+      console.error('Email failed but account created:', emailError);
+      res.json({ success: true, warning: 'Account created but email failed: ' + emailError.message });
+    }
+  } catch (err) {
+    console.error('Onboarding conversion error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Fallback for React routing (must be after ALL API routes)
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, '../dist/index.html'));
 });
 
 app.listen(PORT, () => {
