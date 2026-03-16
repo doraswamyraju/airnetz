@@ -21,6 +21,8 @@ import ActiveAgents from './pages/admin/ActiveAgents';
 import Login from './pages/Login';
 import AgentLayout from './components/agent/AgentLayout';
 import AgentDashboard from './pages/agent/AgentDashboard';
+import AgentTasks from './pages/agent/Tasks';
+import AgentCustomers from './pages/agent/Customers';
 import AgentPayments from './pages/agent/Payments';
 import AgentReports from './pages/agent/Reports';
 import CustomerLayout from './components/customer/CustomerLayout';
