@@ -4,52 +4,99 @@ import { Plan } from '../types';
 import { Wifi, ArrowDown, Shield, Check, X, Router as RouterIcon, Signal, Activity } from 'lucide-react';
 
 const Broadband: React.FC = () => {
+  const [duration, setDuration] = React.useState<'monthly' | 'sixMonths' | 'yearly'>('monthly');
+
   const plans: Plan[] = [
     {
-      id: 'starter',
-      name: 'Airnetz Starter',
-      speed: '40 Mbps',
-      price: 499,
+      id: '50mbps',
+      name: 'Standard 50 Mbps',
+      speed: '50 Mbps',
+      price: duration === 'monthly' ? 650 : duration === 'sixMonths' ? 600 : 550,
+      prices: { monthly: 650, sixMonths: 3600, yearly: 6600 },
       data: 'Unlimited',
       ottBenefits: [],
       type: 'broadband'
     },
     {
-      id: 'basic',
-      name: 'Airnetz Basic',
+      id: '75mbps',
+      name: 'Streamer 75 Mbps',
       speed: '75 Mbps',
-      price: 649,
+      price: duration === 'monthly' ? 750 : duration === 'sixMonths' ? 700 : 650,
+      prices: { monthly: 750, sixMonths: 4200, yearly: 7800 },
       data: 'Unlimited',
-      ottBenefits: ['SonyLIV'],
+      ottBenefits: [],
       type: 'broadband'
     },
     {
-      id: 'streamer',
-      name: 'Airnetz Streamer',
-      speed: '100 Mbps',
-      price: 799,
+      id: '90mbps',
+      name: 'Turbo 90 Mbps',
+      speed: '90 Mbps',
+      price: duration === 'monthly' ? 950 : duration === 'sixMonths' ? 900 : 850,
+      prices: { monthly: 950, sixMonths: 5400, yearly: 10200 },
       data: 'Unlimited',
-      ottBenefits: ['Hotstar', 'SonyLIV', 'Zee5'],
+      ottBenefits: [],
       type: 'broadband',
       recommended: true
     },
     {
-      id: 'pro',
-      name: 'Airnetz Pro',
-      speed: '200 Mbps',
-      price: 999,
+      id: '50mbps-combo',
+      name: 'Combo 50 Mbps',
+      speed: '50 Mbps',
+      price: duration === 'monthly' ? 950 : duration === 'sixMonths' ? 850 : 750,
+      prices: { monthly: 950, sixMonths: 5100, yearly: 9000 },
       data: 'Unlimited',
-      ottBenefits: ['Netflix Basic', 'Prime Video', 'Hotstar'],
-      type: 'broadband'
+      ottBenefits: ['IPTV', 'OTT Apps'],
+      type: 'bundle'
     },
     {
-      id: 'gamer',
-      name: 'Airnetz Gamer',
-      speed: '300 Mbps',
-      price: 1299,
+      id: '75mbps-combo',
+      name: 'Combo 75 Mbps',
+      speed: '75 Mbps',
+      price: duration === 'monthly' ? 1050 : duration === 'sixMonths' ? 950 : 850,
+      prices: { monthly: 1050, sixMonths: 5700, yearly: 10200 },
       data: 'Unlimited',
-      ottBenefits: ['Netflix Std', 'Prime Video', 'Hotstar', 'Game Pass'],
-      type: 'broadband'
+      ottBenefits: ['IPTV', 'OTT Apps'],
+      type: 'bundle'
+    },
+    {
+      id: '90mbps-combo',
+      name: 'Combo 90 Mbps',
+      speed: '90 Mbps',
+      price: duration === 'monthly' ? 1250 : duration === 'sixMonths' ? 1150 : 1050,
+      prices: { monthly: 1250, sixMonths: 6900, yearly: 12600 },
+      data: 'Unlimited',
+      ottBenefits: ['IPTV', 'OTT Apps'],
+      type: 'bundle'
+    },
+    {
+      id: '50mbps-premium',
+      name: 'Premium 50 Mbps',
+      speed: '50 Mbps',
+      price: duration === 'monthly' ? 1250 : duration === 'sixMonths' ? 1100 : 950,
+      prices: { monthly: 1250, sixMonths: 6600, yearly: 11400 },
+      data: 'Unlimited',
+      ottBenefits: ['IPTV', 'Premium OTT', 'Static IP'],
+      type: 'bundle'
+    },
+    {
+      id: '75mbps-premium',
+      name: 'Premium 75 Mbps',
+      speed: '75 Mbps',
+      price: duration === 'monthly' ? 1350 : duration === 'sixMonths' ? 1200 : 1050,
+      prices: { monthly: 1350, sixMonths: 7200, yearly: 12600 },
+      data: 'Unlimited',
+      ottBenefits: ['IPTV', 'Premium OTT', 'Static IP'],
+      type: 'bundle'
+    },
+    {
+      id: '90mbps-premium',
+      name: 'Premium 90 Mbps',
+      speed: '90 Mbps',
+      price: duration === 'monthly' ? 1550 : duration === 'sixMonths' ? 1400 : 1250,
+      prices: { monthly: 1550, sixMonths: 8400, yearly: 15000 },
+      data: 'Unlimited',
+      ottBenefits: ['IPTV', 'Premium OTT', 'Static IP'],
+      type: 'bundle'
     },
   ];
 
@@ -97,8 +144,24 @@ const Broadband: React.FC = () => {
            {/* Visual Toggle */}
            <div className="flex justify-center mb-16">
               <div className="bg-white p-1.5 rounded-2xl shadow-lg border border-gray-100 flex items-center">
-                 <button className="px-8 py-3 bg-slate-900 text-white rounded-xl font-bold shadow-md transition-all">For Home</button>
-                 <button className="px-8 py-3 text-gray-500 hover:text-gray-900 font-bold transition-all">For Business</button>
+                 <button 
+                  onClick={() => setDuration('monthly')}
+                  className={`px-8 py-3 rounded-xl font-bold transition-all ${duration === 'monthly' ? 'bg-slate-900 text-white shadow-md' : 'text-gray-500 hover:text-gray-900'}`}
+                >
+                  Monthly
+                </button>
+                 <button 
+                  onClick={() => setDuration('sixMonths')}
+                  className={`px-8 py-3 rounded-xl font-bold transition-all ${duration === 'sixMonths' ? 'bg-slate-900 text-white shadow-md' : 'text-gray-500 hover:text-gray-900'}`}
+                >
+                  6 Months
+                </button>
+                 <button 
+                  onClick={() => setDuration('yearly')}
+                  className={`px-8 py-3 rounded-xl font-bold transition-all ${duration === 'yearly' ? 'bg-slate-900 text-white shadow-md' : 'text-gray-500 hover:text-gray-900'}`}
+                >
+                  12 Months
+                </button>
               </div>
            </div>
 

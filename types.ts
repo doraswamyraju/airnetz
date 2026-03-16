@@ -3,6 +3,11 @@ export interface Plan {
   name: string;
   speed: string;
   price: number;
+  prices?: {
+    monthly: number;
+    sixMonths: number;
+    yearly: number;
+  };
   data: string;
   ottBenefits: string[];
   type: 'broadband' | 'dth' | 'bundle';

@@ -33,8 +33,8 @@ const Navbar: React.FC = () => {
         <div className="flex justify-between h-16 items-center">
           <div className="flex items-center">
             <Link to="/" className="flex-shrink-0 flex items-center gap-3 group">
-              <div className="w-10 h-10 bg-gradient-to-br from-primary-600 to-primary-800 rounded-xl flex items-center justify-center text-white shadow-lg group-hover:shadow-primary-500/50 transition-all duration-300 transform group-hover:scale-105">
-                <Wifi size={24} />
+              <div className="w-12 h-12 flex items-center justify-center transition-all duration-300 transform group-hover:scale-105">
+                <img src="/assets/images/Airnetz logo.jpeg" alt="Airnetz Logo" className="w-full h-full object-contain rounded" />
               </div>
               <div className="flex flex-col">
                 <span className="font-bold text-2xl tracking-tight text-gray-900 leading-none">Airnetz</span>

@@ -260,19 +260,19 @@ const Home: React.FC = () => {
               <div className="bg-slate-800/30 backdrop-blur-sm p-8 rounded-[2rem] border border-slate-700 hover:border-slate-500 transition-all group hover:-translate-y-2 flex flex-col">
                  <div className="text-slate-400 font-semibold mb-4 uppercase tracking-wider text-sm">Starter</div>
                  <div className="flex items-baseline mb-6">
-                   <span className="text-5xl font-display font-bold text-white">₹499</span>
+                   <span className="text-5xl font-display font-bold text-white">₹650</span>
                    <span className="text-slate-500 ml-2">/mo</span>
                  </div>
                  <div className="flex items-center gap-3 text-white mb-8 bg-slate-700/50 p-3 rounded-xl border border-slate-600">
                    <Wifi size={24} className="text-primary-400" /> 
-                   <span className="font-bold text-lg">40 Mbps Speed</span>
+                   <span className="font-bold text-lg">50 Mbps Speed</span>
                  </div>
                  <ul className="space-y-4 mb-10 text-slate-300 flex-grow">
                     <li className="flex gap-3"><CheckCircle2 size={20} className="text-green-400" /> Unlimited Data</li>
                     <li className="flex gap-3"><CheckCircle2 size={20} className="text-green-400" /> Free Installation*</li>
                     <li className="flex gap-3"><CheckCircle2 size={20} className="text-green-400" /> 24/7 Support</li>
                  </ul>
-                 <Link to="/book?plan=starter" className="block w-full py-4 border border-slate-600 text-white text-center rounded-xl font-semibold hover:border-brand-orange hover:text-brand-orange transition-colors">Select Plan</Link>
+                 <Link to="/book?plan=50mbps" className="block w-full py-4 border border-slate-600 text-white text-center rounded-xl font-semibold hover:border-brand-orange hover:text-brand-orange transition-colors">Select Plan</Link>
               </div>
               
               {/* Streamer Plan (Highlighted) */}
@@ -280,38 +280,38 @@ const Home: React.FC = () => {
                  <div className="absolute top-0 right-0 bg-brand-orange text-white text-xs font-bold px-4 py-1.5 rounded-bl-xl rounded-tr-[1.8rem] shadow-lg">MOST POPULAR</div>
                  <div className="text-primary-300 font-semibold mb-4 uppercase tracking-wider text-sm">Streamer</div>
                  <div className="flex items-baseline mb-6">
-                   <span className="text-6xl font-display font-bold text-white">₹799</span>
+                   <span className="text-6xl font-display font-bold text-white">₹950</span>
                    <span className="text-slate-500 ml-2">/mo</span>
                  </div>
                  <div className="flex items-center gap-3 text-white mb-8 bg-primary-600/20 p-3 rounded-xl border border-primary-500/30">
                    <Wifi size={24} className="text-brand-orange" /> 
-                   <span className="font-bold text-lg">100 Mbps Speed</span>
+                   <span className="font-bold text-lg">75 Mbps Speed</span>
                  </div>
                  <ul className="space-y-4 mb-10 text-slate-200 flex-grow">
                     <li className="flex gap-3"><CheckCircle2 size={20} className="text-brand-orange" /> Unlimited Data</li>
                     <li className="flex gap-3"><CheckCircle2 size={20} className="text-brand-orange" /> Free Dual-Band Router</li>
-                    <li className="flex gap-3"><CheckCircle2 size={20} className="text-brand-orange" /> 3 OTT Apps Included</li>
+                    <li className="flex gap-3"><CheckCircle2 size={20} className="text-brand-orange" /> Add IPTV for ₹300/mo</li>
                  </ul>
-                 <Link to="/book?plan=streamer" className="block w-full py-4 bg-gradient-to-r from-brand-orange to-orange-600 text-white text-center rounded-xl font-bold hover:shadow-lg hover:shadow-orange-500/30 transition-all">Get Connected</Link>
+                 <Link to="/book?plan=75mbps" className="block w-full py-4 bg-gradient-to-r from-brand-orange to-orange-600 text-white text-center rounded-xl font-bold hover:shadow-lg hover:shadow-orange-500/30 transition-all">Get Connected</Link>
               </div>
 
               {/* Gamer Plan */}
               <div className="bg-slate-800/30 backdrop-blur-sm p-8 rounded-[2rem] border border-slate-700 hover:border-slate-500 transition-all group hover:-translate-y-2 flex flex-col">
-                 <div className="text-slate-400 font-semibold mb-4 uppercase tracking-wider text-sm">Gamer</div>
+                 <div className="text-slate-400 font-semibold mb-4 uppercase tracking-wider text-sm">Pro Plus</div>
                  <div className="flex items-baseline mb-6">
-                   <span className="text-5xl font-display font-bold text-white">₹1299</span>
+                   <span className="text-5xl font-display font-bold text-white">₹1550</span>
                    <span className="text-slate-500 ml-2">/mo</span>
                  </div>
                  <div className="flex items-center gap-3 text-white mb-8 bg-slate-700/50 p-3 rounded-xl border border-slate-600">
                    <Wifi size={24} className="text-purple-400" /> 
-                   <span className="font-bold text-lg">300 Mbps Speed</span>
+                   <span className="font-bold text-lg">90 Mbps Speed</span>
                  </div>
                  <ul className="space-y-4 mb-10 text-slate-300 flex-grow">
                     <li className="flex gap-3"><CheckCircle2 size={20} className="text-green-400" /> Unlimited Data</li>
-                    <li className="flex gap-3"><CheckCircle2 size={20} className="text-green-400" /> Free Mesh Router</li>
-                    <li className="flex gap-3"><CheckCircle2 size={20} className="text-green-400" /> Netflix & Prime Included</li>
+                    <li className="flex gap-3"><CheckCircle2 size={20} className="text-green-400" /> Broadband + IPTV Included</li>
+                    <li className="flex gap-3"><CheckCircle2 size={20} className="text-green-400" /> OTT Subscription Included</li>
                  </ul>
-                 <Link to="/book?plan=gamer" className="block w-full py-4 border border-slate-600 text-white text-center rounded-xl font-semibold hover:border-brand-orange hover:text-brand-orange transition-colors">Select Plan</Link>
+                 <Link to="/book?plan=90mbps-premium" className="block w-full py-4 border border-slate-600 text-white text-center rounded-xl font-semibold hover:border-brand-orange hover:text-brand-orange transition-colors">Select Plan</Link>
               </div>
            </div>
         </div>
