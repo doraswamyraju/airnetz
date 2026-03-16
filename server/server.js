@@ -180,6 +180,80 @@ app.get('/api/admin/leads', (req, res) => {
   });
 });
 
+import nodemailer from 'nodemailer';
+
+// Email Transporter (Gatla Foundation / SMTP)
+const transporter = nodemailer.createTransport({
+  host: process.env.EMAIL_HOST,
+  port: process.env.EMAIL_PORT,
+  secure: false, // true for 465, false for other ports
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS,
+  },
+});
+
+// Convert Lead to Customer
+app.post('/api/leads/convert', (req, res) => {
+  const { leadId } = req.body;
+
+  // 1. Get Lead Details
+  db.query('SELECT * FROM leads WHERE id = ?', [leadId], (err, leads) => {
+    if (err || leads.length === 0) return res.status(404).json({ error: 'Lead not found' });
+    const lead = leads[0];
+
+    // 2. Create User Account
+    const initialPassword = 'pass' + Math.floor(1000 + Math.random() * 9000); // Generate simple password
+    const userSql = 'INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, ?)';
+    
+    db.query(userSql, [lead.name, lead.email, initialPassword, 'customer'], (err, userResult) => {
+      if (err) return res.status(500).json({ error: 'Email already exists or conversion failed' });
+      const userId = userResult.insertId;
+
+      // 3. Create Customer Profile
+      const customerSql = 'INSERT INTO customers (user_id, address, phone, status) VALUES (?, ?, ?, ?)';
+      db.query(customerSql, [userId, lead.address, lead.phone, 'active'], (err) => {
+        if (err) return res.status(500).json({ error: 'Failed to create customer profile' });
+
+        // 4. Update Lead Status
+        db.query('UPDATE leads SET status = ? WHERE id = ?', ['Converted', leadId], (err) => {
+          
+          // 5. Send Welcome Email
+          const mailOptions = {
+            from: `"Airnetz Support" <${process.env.EMAIL_USER}>`,
+            to: lead.email,
+            subject: 'Welcome to Airnetz - Your Account is Ready!',
+            html: `
+              <div style="font-family: sans-serif; color: #333; max-width: 600px; margin: auto;">
+                <h2 style="color: #f97316;">Welcome to Airnetz!</h2>
+                <p>Hello ${lead.name},</p>
+                <p>Your high-speed internet connection request has been approved. We have created your customer portal account.</p>
+                <div style="background: #f3f4f6; padding: 20px; border-radius: 10px; margin: 20px 0;">
+                  <p style="margin: 0; font-weight: bold;">Your Login Credentials:</p>
+                  <p><strong>Email:</strong> ${lead.email}</p>
+                  <p><strong>Password:</strong> ${initialPassword}</p>
+                </div>
+                <p>You can login at: <a href="http://airnetz.sriddha.com/login" style="color: #f97316; font-weight: bold;">airnetz.sriddha.com/login</a></p>
+                <p>Please change your password after logging in for the first time.</p>
+                <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 30px 0;">
+                <p style="font-size: 12px; color: #9ca3af;">Airnetz Tirupati - High Speed Fiber Broadband</p>
+              </div>
+            `
+          };
+
+          transporter.sendMail(mailOptions, (error, info) => {
+            if (error) {
+              console.error('Email error:', error);
+              return res.json({ success: true, warning: 'Account created but welcome email failed' });
+            }
+            res.json({ success: true, message: 'Customer onboarded successfully' });
+          });
+        });
+      });
+    });
+  });
+});
+
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });

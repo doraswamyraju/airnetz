@@ -18,6 +18,7 @@ import Customers from './pages/admin/Customers';
 import Reports from './pages/admin/Reports';
 import Payments from './pages/admin/Payments';
 import ActiveAgents from './pages/admin/ActiveAgents';
+import LeadsManager from './pages/admin/Leads';
 import Login from './pages/Login';
 import AgentLayout from './components/agent/AgentLayout';
 import AgentDashboard from './pages/agent/AgentDashboard';
@@ -60,7 +61,7 @@ const App: React.FC = () => {
         <Route path="/admin" element={<AdminLayout />}>
           <Route index element={<AdminDashboard />} />
           <Route path="agents" element={<Agents />} />
-          <Route path="leads" element={<div className="p-8 text-center text-gray-500">Leads Management Coming Soon</div>} />
+          <Route path="leads" element={<LeadsManager />} />
           <Route path="customers" element={<Customers />} />
           <Route path="requests" element={<AdminRequests />} />
           <Route path="requests/:id" element={<RequestDetail />} />
