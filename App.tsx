@@ -25,6 +25,8 @@ import AgentTasks from './pages/agent/Tasks';
 import AgentCustomers from './pages/agent/Customers';
 import AgentPayments from './pages/agent/Payments';
 import AgentReports from './pages/agent/Reports';
+import AgentReports from './pages/agent/Reports';
+import CustomerLayout from './components/customer/CustomerLayout';
 import CustomerDashboard from './pages/customer/CustomerDashboard';
 
 const ScrollToTop = () => {
@@ -74,18 +76,25 @@ const App: React.FC = () => {
           <Route path="/book" element={<BookConnection />} />
           <Route path="/support" element={<Support />} />
           <Route path="/login" element={<Login />} />
-          
-          {/* Agent Routes */}
-          <Route path="/agent" element={<AgentLayout />}>
-            <Route index element={<AgentDashboard />} />
-            <Route path="tasks" element={<AgentTasks />} />
-            <Route path="customers" element={<AgentCustomers />} />
-            <Route path="payments" element={<AgentPayments />} />
-            <Route path="reports" element={<AgentReports />} />
-            <Route path="settings" element={<div className="p-8 text-center text-gray-500 font-sans">Profile Settings Coming Soon</div>} />
-          </Route>
+        </Route>
 
-          <Route path="/customer" element={<CustomerDashboard />} />
+        {/* Agent Routes */}
+        <Route path="/agent" element={<AgentLayout />}>
+          <Route index element={<AgentDashboard />} />
+          <Route path="tasks" element={<AgentTasks />} />
+          <Route path="customers" element={<AgentCustomers />} />
+          <Route path="payments" element={<AgentPayments />} />
+          <Route path="reports" element={<AgentReports />} />
+          <Route path="settings" element={<div className="p-8 text-center text-gray-500 font-sans">Profile Settings Coming Soon</div>} />
+        </Route>
+
+        {/* Customer Routes */}
+        <Route path="/customer" element={<CustomerLayout />}>
+          <Route index element={<CustomerDashboard />} />
+          <Route path="plans" element={<div className="p-8 text-center text-gray-500 font-sans">Plan Details Coming Soon</div>} />
+          <Route path="billing" element={<div className="p-8 text-center text-gray-500 font-sans">Billing History Coming Soon</div>} />
+          <Route path="support" element={<div className="p-8 text-center text-gray-500 font-sans">Customer Support Coming Soon</div>} />
+          <Route path="settings" element={<div className="p-8 text-center text-gray-500 font-sans">Account Settings Coming Soon</div>} />
         </Route>
       </Routes>
     </Router>
