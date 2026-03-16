@@ -1,4 +1,6 @@
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { Search, Filter, ChevronRight, MapPin, Calendar } from 'lucide-react';
 import { api } from '../../services/api';
 
 const AdminRequests: React.FC = () => {
@@ -8,7 +10,7 @@ const AdminRequests: React.FC = () => {
   const [requests, setRequests] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
-  React.useEffect(() => {
+  useEffect(() => {
     const loadRequests = async () => {
       try {
         const data = await api.getAdminRequests();

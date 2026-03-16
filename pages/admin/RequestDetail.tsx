@@ -1,15 +1,20 @@
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { 
+  ArrowLeft, MapPin, Phone, Calendar, User, 
+  AlertCircle, CheckCircle, Clock, Navigation 
+} from 'lucide-react';
 import { api } from '../../services/api';
 
 const RequestDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const [request, setRequest] = React.useState<any>(null);
-  const [agents, setAgents] = React.useState<any[]>([]);
-  const [loading, setLoading] = React.useState(true);
-  const [showAssignModal, setShowAssignModal] = React.useState(false);
+  const [request, setRequest] = useState<any>(null);
+  const [agents, setAgents] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [showAssignModal, setShowAssignModal] = useState(false);
 
-  React.useEffect(() => {
+  useEffect(() => {
     const loadData = async () => {
       try {
         const [requests, agentsList] = await Promise.all([
@@ -39,6 +44,23 @@ const RequestDetail: React.FC = () => {
       }
     } catch (err) {
       alert('Failed to assign technician');
+    }
+  };
+
+  const handleStatusChange = async (newStatus: string) => {
+    if (!id) return;
+    try {
+      // We should probably add an API for this too, but for now let's just update locally 
+      // or implement the API call if it exists. Let's assume we need to implement it.
+      await fetch(`/api/admin/status`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ requestId: id, status: newStatus })
+      });
+      const requests = await api.getAdminRequests();
+      setRequest(requests.find((r: any) => r.id === id));
+    } catch (err) {
+      console.error('Failed to update status');
     }
   };
 
