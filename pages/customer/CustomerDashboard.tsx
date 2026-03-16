@@ -5,13 +5,32 @@ import {
 } from 'lucide-react';
 import ActivePlan from '../../components/customer/ActivePlan';
 
-const CustomerDashboard: React.FC = () => {
+  const [profile, setProfile] = React.useState<any>(null);
+  const [loading, setLoading] = React.useState(true);
+  const user = JSON.parse(localStorage.getItem('user') || '{}');
+
+  React.useEffect(() => {
+    const loadData = async () => {
+      try {
+        const data = await api.getCustomerProfile(user.id);
+        setProfile(data);
+      } catch (err) {
+        console.error('Failed to load profile');
+      } finally {
+        setLoading(false);
+      }
+    };
+    if (user.id) loadData();
+  }, [user.id]);
+
+  if (loading) return <div className="p-8 text-center animate-pulse">Loading Portal...</div>;
+
   return (
     <div className="min-h-screen bg-slate-50 pb-12 px-4 sm:px-6 lg:px-8 font-sans">
       <div className="max-w-7xl mx-auto">
         <div className="flex flex-col md:flex-row md:items-center justify-between mb-10 gap-4">
           <div>
-            <h1 className="text-3xl font-display font-bold text-gray-900">Hello, Doraswamy Raju</h1>
+            <h1 className="text-3xl font-display font-bold text-gray-900">Hello, {profile?.name || user.name}</h1>
             <p className="text-gray-500">Welcome to your Airnetz Portal. Network is running smoothly.</p>
           </div>
           <div className="flex items-center gap-3">
@@ -23,7 +42,11 @@ const CustomerDashboard: React.FC = () => {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-10">
           <div className="lg:col-span-2">
-            <ActivePlan />
+            <ActivePlan 
+              planName={profile?.plan_name || 'Broadband 100'} 
+              speed={profile?.speed_mbps || 100}
+              expiryDate="Next Month"
+            />
           </div>
 
           {/* Quick Actions */}

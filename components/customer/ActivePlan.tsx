@@ -1,7 +1,17 @@
 import React from 'react';
 import { Wifi, ArrowRight } from 'lucide-react';
 
-const ActivePlan: React.FC = () => {
+interface ActivePlanProps {
+  planName?: string;
+  speed?: number;
+  expiryDate?: string;
+}
+
+const ActivePlan: React.FC<ActivePlanProps> = ({ 
+  planName = 'Turbo Home 100', 
+  speed = 100,
+  expiryDate = 'April 10, 2026'
+}) => {
   return (
     <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-[3rem] p-10 text-white relative overflow-hidden shadow-2xl">
       <div className="absolute top-0 right-0 w-64 h-64 bg-primary-500/10 rounded-full -translate-y-1/2 translate-x-1/2 blur-3xl"></div>
