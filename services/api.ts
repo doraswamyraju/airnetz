@@ -61,6 +61,11 @@ export const api = {
     return res.json();
   },
 
+  getStats: async () => {
+    const res = await fetch(`${API_BASE}/admin/stats`);
+    return res.json();
+  },
+
   // General
   getPlans: async () => {
     const res = await fetch(`${API_BASE}/plans`);

@@ -146,6 +146,25 @@ app.post('/api/admin/assign', async (req, res) => {
   }
 });
 
+// Dashboard Stats
+app.get('/api/admin/stats', async (req, res) => {
+  try {
+    const [requestCount] = await pool.query('SELECT COUNT(*) as count FROM service_requests');
+    const [agentCount] = await pool.query('SELECT COUNT(*) as count FROM users WHERE role = "agent"');
+    const [customerCount] = await pool.query('SELECT COUNT(*) as count FROM customers');
+    const [revenueResult] = await pool.query('SELECT SUM(amount) as total FROM payments WHERE MONTH(payment_date) = MONTH(CURRENT_DATE()) AND YEAR(payment_date) = YEAR(CURRENT_DATE())');
+    
+    res.json({
+      totalRequests: requestCount[0].count,
+      activeAgents: agentCount[0].count,
+      totalCustomers: customerCount[0].count,
+      revenue: revenueResult[0].total || 0
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
 // --- GENERAL ENDPOINTS ---
 
 // Get all plans

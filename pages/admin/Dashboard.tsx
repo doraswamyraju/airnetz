@@ -1,6 +1,6 @@
-import React from 'react';
-import { Users, UserCircle, CreditCard, ClipboardList, CheckCircle, Clock, TrendingUp, Bell } from 'lucide-react';
-import { MOCK_REQUESTS } from '../../services/mockData';
+import React, { useState, useEffect } from 'react';
+import { Users, UserCircle, CreditCard, ClipboardList, TrendingUp, Bell } from 'lucide-react';
+import { api } from '../../services/api';
 
 const StatCard = ({ title, value, icon: Icon, color, trend }: any) => (
   <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm">
@@ -24,9 +24,35 @@ const StatCard = ({ title, value, icon: Icon, color, trend }: any) => (
 );
 
 const AdminDashboard: React.FC = () => {
-  const pendingCount = MOCK_REQUESTS.filter(r => r.status === 'Pending').length;
-  const progressCount = MOCK_REQUESTS.filter(r => r.status === 'In Progress').length;
-  const completedCount = MOCK_REQUESTS.filter(r => r.status === 'Completed').length;
+  const [stats, setStats] = useState<any>(null);
+  const [requests, setRequests] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [statsData, requestsData] = await Promise.all([
+          api.getStats(),
+          api.getAdminRequests()
+        ]);
+        setStats(statsData);
+        setRequests(requestsData);
+      } catch (error) {
+        console.error('Failed to fetch dashboard data', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="w-12 h-12 border-4 border-primary-600 border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -38,27 +64,27 @@ const AdminDashboard: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard
           title="Total Requests"
-          value={MOCK_REQUESTS.length}
+          value={stats?.totalRequests || 0}
           icon={ClipboardList}
           color="bg-blue-500"
           trend="+12%"
         />
         <StatCard
           title="Active Agents"
-          value="24"
+          value={stats?.activeAgents || 0}
           icon={Users}
           color="bg-green-500"
         />
         <StatCard
           title="Total Customers"
-          value="1,245"
+          value={stats?.totalCustomers || 0}
           icon={UserCircle}
           color="bg-purple-500"
           trend="+5%"
         />
         <StatCard
           title="Revenue (This Month)"
-          value="₹45,200"
+          value={`₹${(stats?.revenue || 0).toLocaleString()}`}
           icon={CreditCard}
           color="bg-orange-500"
           trend="+18%"
@@ -69,28 +95,32 @@ const AdminDashboard: React.FC = () => {
         <div className="lg:col-span-2 bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
           <div className="p-6 border-b border-gray-100 flex justify-between items-center">
             <h2 className="font-semibold text-gray-900">Latest Service Requests</h2>
-            <button className="text-sm text-brand-orange font-medium hover:text-brand-dark">View All</button>
+            <button className="text-sm text-brand-orange font-medium hover:text-brand-dark" onClick={() => window.location.hash = '#/admin/requests'}>View All</button>
           </div>
           <div className="divide-y divide-gray-100">
-            {MOCK_REQUESTS.slice(0, 4).map((req) => (
-              <div key={req.id} className="p-4 hover:bg-gray-50 transition-colors flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <div className={`w-2 h-2 rounded-full ${req.priority === 'High' ? 'bg-red-500' :
-                      req.priority === 'Medium' ? 'bg-yellow-500' : 'bg-blue-500'
-                    }`} />
-                  <div>
-                    <p className="font-medium text-gray-900">{req.customerName}</p>
-                    <p className="text-sm text-gray-500">{req.type} • {req.id}</p>
+            {requests.length > 0 ? (
+              requests.slice(0, 4).map((req) => (
+                <div key={req.id} className="p-4 hover:bg-gray-50 transition-colors flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <div className={`w-2 h-2 rounded-full ${req.priority === 'High' ? 'bg-red-500' :
+                        req.priority === 'Medium' ? 'bg-yellow-500' : 'bg-blue-500'
+                      }`} />
+                    <div>
+                      <p className="font-medium text-gray-900">{req.customer_name}</p>
+                      <p className="text-sm text-gray-500">{req.type} • {req.id}</p>
+                    </div>
                   </div>
+                  <span className={`px-3 py-1 rounded-full text-xs font-medium ${req.status === 'Pending' ? 'bg-yellow-100 text-yellow-700' :
+                      req.status === 'In Progress' ? 'bg-blue-100 text-blue-700' :
+                        'bg-green-100 text-green-700'
+                    }`}>
+                    {req.status}
+                  </span>
                 </div>
-                <span className={`px-3 py-1 rounded-full text-xs font-medium ${req.status === 'Pending' ? 'bg-yellow-100 text-yellow-700' :
-                    req.status === 'In Progress' ? 'bg-blue-100 text-blue-700' :
-                      'bg-green-100 text-green-700'
-                  }`}>
-                  {req.status}
-                </span>
-              </div>
-            ))}
+              ))
+            ) : (
+                <div className="p-8 text-center text-gray-500">No requests found</div>
+            )}
           </div>
         </div>
 
@@ -99,22 +129,27 @@ const AdminDashboard: React.FC = () => {
             <h2 className="font-semibold text-gray-900">Activity Feed</h2>
           </div>
           <div className="p-6 space-y-6">
-            {[
-              { time: '10 mins ago', desc: 'Agent John started task REQ-001' },
-              { time: '1 hour ago', desc: 'New customer "Acme Corp" registered' },
-              { time: '2 hours ago', desc: 'Payment of ₹1,500 received' },
-              { time: '3 hours ago', desc: 'Agent Sarah marked REQ-002 as completed' }
-            ].map((activity, i) => (
-              <div key={i} className="flex gap-4">
-                <div className="mt-1 bg-blue-100 p-1.5 rounded-full text-blue-600 h-fit">
-                  <Bell size={14} />
+            {requests.length > 0 ? (
+              requests.slice(0, 4).map((activity, i) => (
+                <div key={i} className="flex gap-4">
+                  <div className="mt-1 bg-blue-100 p-1.5 rounded-full text-blue-600 h-fit">
+                    <Bell size={14} />
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-900">
+                        {activity.status === 'Pending' ? `New ${activity.type} request from ${activity.customer_name}` : 
+                         activity.status === 'In Progress' ? `${activity.agent_name || 'An agent'} started ${activity.id}` :
+                         `${activity.id} was marked as ${activity.status}`}
+                    </p>
+                    <p className="text-xs text-gray-400 mt-0.5">
+                        {new Date(activity.requested_date).toLocaleDateString()}
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-sm text-gray-900">{activity.desc}</p>
-                  <p className="text-xs text-gray-400 mt-0.5">{activity.time}</p>
-                </div>
-              </div>
-            ))}
+              ))
+            ) : (
+                <div className="text-center py-4 text-gray-400 text-sm">No recent activity</div>
+            )}
           </div>
         </div>
       </div>
