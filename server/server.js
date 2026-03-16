@@ -166,7 +166,42 @@ app.post('/api/public/book', async (req, res) => {
   const sql = 'INSERT INTO leads (name, email, phone, address, locality, service_type, plan) VALUES (?, ?, ?, ?, ?, ?, ?)';
   try {
     const [result] = await pool.query(sql, [name, email, phone, address, locality, serviceType, plan]);
-    res.json({ success: true, leadId: result.insertId });
+    const leadId = result.insertId;
+
+    // Send Booking Confirmation Email
+    const mailOptions = {
+      from: `"Airnetz Support" <${process.env.EMAIL_USER}>`,
+      to: email,
+      subject: 'Connection Request Received - Airnetz Tirupati',
+      html: `
+        <div style="font-family: sans-serif; color: #333; max-width: 600px; margin: auto; border: 1px solid #eee; padding: 20px; border-radius: 15px;">
+          <h2 style="color: #f97316;">We've Received Your Request!</h2>
+          <p>Hello ${name},</p>
+          <p>Thank you for choosing Airnetz. We have received your request for a new <strong>${serviceType}</strong> connection.</p>
+          <div style="background: #f9fafb; padding: 15px; border-radius: 10px; margin: 20px 0;">
+            <p style="margin: 0;"><strong>Details Provided:</strong></p>
+            <ul style="list-style: none; padding: 0;">
+              <li>Phone: ${phone}</li>
+              <li>Area: ${locality}</li>
+              <li>Requested Plan: ${plan || 'To be decided'}</li>
+            </ul>
+          </div>
+          <p>Our representative will contact you at <strong>${phone}</strong> within 24 hours to schedule the installation.</p>
+          <p>Once your connection is verified, you will receive another email with your <strong>account login details</strong>.</p>
+          <hr style="border: none; border-top: 1px solid #eee; margin: 25px 0;">
+          <p style="font-size: 12px; color: #666; text-align: center;">Airnetz Tirupati - Connectivity Redefined</p>
+        </div>
+      `
+    };
+
+    try {
+      await transporter.sendMail(mailOptions);
+      console.log(`Booking confirmation sent to ${email}`);
+    } catch (e) {
+      console.error('Initial booking email failed:', e);
+    }
+
+    res.json({ success: true, leadId });
   } catch (error) {
     console.error('Booking error:', error);
     res.status(500).json({ error: error.message });
