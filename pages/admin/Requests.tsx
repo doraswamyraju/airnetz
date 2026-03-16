@@ -1,19 +1,37 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { Search, Filter, ChevronRight, MapPin, Calendar } from 'lucide-react';
-import { MOCK_REQUESTS, ServiceRequest } from '../../services/mockData';
+import { useNavigate } from 'react-router-dom';
+import { api } from '../../services/api';
 
 const AdminRequests: React.FC = () => {
+  const navigate = useNavigate();
   const [filter, setFilter] = useState('All');
   const [searchTerm, setSearchTerm] = useState('');
+  const [requests, setRequests] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const filteredRequests = MOCK_REQUESTS.filter(req => {
+  React.useEffect(() => {
+    const loadRequests = async () => {
+      try {
+        const data = await api.getAdminRequests();
+        setRequests(data);
+      } catch (err) {
+        console.error('Failed to load requests');
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadRequests();
+  }, []);
+
+  const filteredRequests = requests.filter(req => {
     const matchesFilter = filter === 'All' || req.status === filter;
+    const customerName = req.customer_name || 'Unknown';
     const matchesSearch = 
-      req.customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       req.id.toLowerCase().includes(searchTerm.toLowerCase());
     return matchesFilter && matchesSearch;
   });
+
+  if (loading) return <div className="p-12 text-center animate-pulse">Loading Requests...</div>;
 
   return (
     <div className="space-y-6">
@@ -79,7 +97,7 @@ const AdminRequests: React.FC = () => {
                   </span>
                 </div>
                 <h3 className="text-lg font-semibold text-gray-900 group-hover:text-brand-orange transition-colors">
-                  {req.type} - {req.customerName}
+                  {req.type} - {req.customer_name || 'Guest'}
                 </h3>
                 <div className="mt-3 flex flex-wrap gap-4 text-sm text-gray-500">
                   <div className="flex items-center gap-1">

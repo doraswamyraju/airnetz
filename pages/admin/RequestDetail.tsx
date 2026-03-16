@@ -1,32 +1,49 @@
-import React, { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, MapPin, Phone, Calendar, User, AlertCircle, CheckCircle, Clock, Navigation } from 'lucide-react';
-import { getRequestById, updateRequestStatus, ServiceRequest } from '../../services/mockData';
+import { useNavigate, useParams } from 'react-router-dom';
+import { api } from '../../services/api';
 
 const RequestDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const [request, setRequest] = useState<ServiceRequest | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [request, setRequest] = React.useState<any>(null);
+  const [agents, setAgents] = React.useState<any[]>([]);
+  const [loading, setLoading] = React.useState(true);
+  const [showAssignModal, setShowAssignModal] = React.useState(false);
 
-  useEffect(() => {
-    if (id) {
-      getRequestById(id).then(data => {
-        setRequest(data || null);
+  React.useEffect(() => {
+    const loadData = async () => {
+      try {
+        const [requests, agentsList] = await Promise.all([
+          api.getAdminRequests(),
+          api.getAgents()
+        ]);
+        const found = requests.find((r: any) => r.id === id);
+        setRequest(found);
+        setAgents(agentsList);
+      } catch (err) {
+        console.error('Failed to load data');
+      } finally {
         setLoading(false);
-      });
-    }
+      }
+    };
+    if (id) loadData();
   }, [id]);
 
-  const handleStatusChange = async (newStatus: ServiceRequest['status']) => {
-    if (request) {
-      const updated = await updateRequestStatus(request.id, newStatus);
-      setRequest({ ...updated });
+  const handleAssign = async (agentId: number) => {
+    if (!id) return;
+    try {
+      const res = await api.assignTechnician(id, agentId);
+      if (res.success) {
+        const requests = await api.getAdminRequests();
+        setRequest(requests.find((r: any) => r.id === id));
+        setShowAssignModal(false);
+      }
+    } catch (err) {
+      alert('Failed to assign technician');
     }
   };
 
-  if (loading) return <div className="p-8 text-center text-gray-500">Loading details...</div>;
-  if (!request) return <div className="p-8 text-center text-gray-500">Request not found</div>;
+  if (loading) return <div className="p-12 text-center animate-pulse">Loading Details...</div>;
+  if (!request) return <div className="p-12 text-center text-red-500">Request Not Found</div>;
 
   return (
     <div className="max-w-3xl mx-auto">
@@ -86,7 +103,7 @@ const RequestDetail: React.FC = () => {
                 </div>
                 <div>
                   <p className="text-sm text-gray-500 mb-1">Name</p>
-                  <p className="font-medium text-gray-900">{request.customerName}</p>
+                  <p className="font-medium text-gray-900">{request.customer_name || 'Guest'}</p>
                 </div>
               </div>
               <div className="flex items-start gap-3">
@@ -125,29 +142,69 @@ const RequestDetail: React.FC = () => {
           {/* Technician Assignment */}
           <section>
             <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wider mb-4">Technician</h3>
-            {request.technician ? (
+            {request.agent_name ? (
               <div className="flex items-center gap-4 p-4 border border-gray-200 rounded-lg">
-                <div className="w-10 h-10 bg-brand-dark text-white rounded-full flex items-center justify-center font-bold">
-                  {request.technician.charAt(0)}
+                <div className="w-10 h-10 bg-slate-900 text-white rounded-full flex items-center justify-center font-bold">
+                  {request.agent_name.charAt(0)}
                 </div>
                 <div>
-                  <p className="font-medium text-gray-900">{request.technician}</p>
+                  <p className="font-medium text-gray-900">{request.agent_name}</p>
                   <p className="text-sm text-green-600 flex items-center gap-1">
                     <CheckCircle size={12} /> Assigned
                   </p>
                 </div>
-                <button className="ml-auto text-sm text-gray-500 hover:text-brand-orange">Change</button>
+                <button 
+                  onClick={() => setShowAssignModal(true)}
+                  className="ml-auto text-sm text-gray-500 hover:text-brand-orange"
+                >
+                  Change
+                </button>
               </div>
             ) : (
-              <button className="w-full py-3 border-2 border-dashed border-gray-300 rounded-lg text-gray-500 hover:border-brand-orange hover:text-brand-orange transition-colors flex items-center justify-center gap-2 font-medium">
+              <button 
+                onClick={() => setShowAssignModal(true)}
+                className="w-full py-3 border-2 border-dashed border-gray-300 rounded-lg text-gray-500 hover:border-brand-orange hover:text-brand-orange transition-colors flex items-center justify-center gap-2 font-medium"
+              >
                 <User size={20} />
                 Assign Technician
               </button>
             )}
           </section>
 
+          {/* Assignment Modal */}
+          {showAssignModal && (
+            <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+              <div className="bg-white rounded-3xl w-full max-w-md p-8 shadow-2xl">
+                <h3 className="text-2xl font-bold text-gray-900 mb-6">Assign Technician</h3>
+                <div className="space-y-2 mb-8 max-h-60 overflow-y-auto pr-2">
+                  {agents.map((agent: any) => (
+                    <button
+                      key={agent.id}
+                      onClick={() => handleAssign(agent.id)}
+                      className="w-full p-4 border border-gray-100 rounded-xl flex items-center gap-4 hover:bg-slate-50 transition-all text-left"
+                    >
+                      <div className="w-10 h-10 bg-slate-100 rounded-full flex items-center justify-center font-bold text-slate-600 uppercase">
+                        {agent.name.charAt(0)}
+                      </div>
+                      <div>
+                        <p className="font-bold text-gray-900">{agent.name}</p>
+                        <p className="text-xs text-gray-500">{agent.email}</p>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+                <button 
+                  onClick={() => setShowAssignModal(false)}
+                  className="w-full py-3 text-gray-500 font-bold hover:text-gray-900"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          )}
+
           {/* Agent Tracking (Visible if assigned) */}
-          {request.technician && (
+          {request.agent_name && (
             <section className="mt-8">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wider">Live Tracking</h3>
