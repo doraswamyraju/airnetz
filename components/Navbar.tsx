@@ -34,7 +34,7 @@ const Navbar: React.FC = () => {
         <div className="flex justify-between h-16 items-center">
           <div className="flex items-center">
             <Link to="/" className="flex-shrink-0 flex items-center group">
-              <div className="w-14 h-14 flex items-center justify-center transition-all duration-300 transform group-hover:scale-105">
+              <div className="w-20 h-20 flex items-center justify-center transition-all duration-300 transform group-hover:scale-105">
                 <img src="/assets/images/Airnetz logo.jpeg" alt="Airnetz Logo" className="w-full h-full object-contain rounded" />
               </div>
             </Link>
