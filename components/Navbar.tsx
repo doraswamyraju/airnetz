@@ -20,7 +20,7 @@ const Navbar: React.FC = () => {
   const navLinks = [
     { name: 'Home', path: '/' },
     { name: 'Broadband Plans', path: '/broadband' },
-    { name: 'DTH & OTT', path: '/dth' },
+    { name: 'IPTV(DTH) & OTT', path: '/dth' },
     { name: 'Book Connection', path: '/book' },
     { name: 'Support', path: '/support' },
   ];
@@ -32,13 +32,9 @@ const Navbar: React.FC = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16 items-center">
           <div className="flex items-center">
-            <Link to="/" className="flex-shrink-0 flex items-center gap-3 group">
-              <div className="w-12 h-12 flex items-center justify-center transition-all duration-300 transform group-hover:scale-105">
+            <Link to="/" className="flex-shrink-0 flex items-center group">
+              <div className="w-14 h-14 flex items-center justify-center transition-all duration-300 transform group-hover:scale-105">
                 <img src="/assets/images/Airnetz logo.jpeg" alt="Airnetz Logo" className="w-full h-full object-contain rounded" />
-              </div>
-              <div className="flex flex-col">
-                <span className="font-bold text-2xl tracking-tight text-gray-900 leading-none">Airnetz</span>
-                <span className="text-[10px] text-gray-500 uppercase tracking-[0.2em] font-bold">Tirupati</span>
               </div>
             </Link>
           </div>

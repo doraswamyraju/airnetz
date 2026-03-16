@@ -1,3 +1,12 @@
+export type UserRole = 'admin' | 'employee' | 'customer';
+
+export interface User {
+  id: string;
+  name: string;
+  email: string;
+  role: UserRole;
+}
+
 export interface Plan {
   id: string;
   name: string;

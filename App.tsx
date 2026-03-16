@@ -18,6 +18,9 @@ import Customers from './pages/admin/Customers';
 import Reports from './pages/admin/Reports';
 import Payments from './pages/admin/Payments';
 import ActiveAgents from './pages/admin/ActiveAgents';
+import Login from './pages/Login';
+import AgentDashboard from './pages/agent/AgentDashboard';
+import CustomerDashboard from './pages/customer/CustomerDashboard';
 
 const ScrollToTop = () => {
   const { pathname } = useLocation();
@@ -65,6 +68,9 @@ const App: React.FC = () => {
           <Route path="/dth" element={<DTH />} />
           <Route path="/book" element={<BookConnection />} />
           <Route path="/support" element={<Support />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/agent" element={<AgentDashboard />} />
+          <Route path="/customer" element={<CustomerDashboard />} />
         </Route>
       </Routes>
     </Router>

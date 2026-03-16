@@ -107,67 +107,114 @@ const DTH: React.FC = () => {
       </section>
 
       {/* Pricing Section */}
-      <section className="py-16 px-4">
+      <section className="py-20 px-4">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">Choose Your Entertainment Pack</h2>
-            <p className="text-gray-600">Flexible plans for every family size.</p>
+            <h2 className="text-4xl font-display font-bold text-gray-900 mb-4">Entertainment Packages</h2>
+            <p className="text-gray-600 text-lg">Choose what fits your lifestyle - IPTV, OTT, or stay connected with both.</p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-start">
-              {/* Basic Pack */}
-              <div className="bg-white rounded-3xl p-8 border border-gray-200 hover:shadow-xl transition-shadow">
-                  <div className="text-gray-500 font-bold tracking-wide text-sm mb-4 uppercase">Value Prime</div>
-                  <div className="flex items-baseline mb-6">
-                      <span className="text-4xl font-extrabold text-gray-900">₹250</span>
-                      <span className="text-gray-500 ml-2">/mo</span>
-                  </div>
-                  <p className="text-gray-600 mb-6 text-sm">Perfect for regional content lovers.</p>
-                  <ul className="space-y-4 mb-8">
-                      <li className="flex items-center text-gray-700 font-medium"><CheckCircle2 size={18} className="mr-3 text-green-500"/> 250+ SD Channels</li>
-                      <li className="flex items-center text-gray-700 font-medium"><CheckCircle2 size={18} className="mr-3 text-green-500"/> 30+ HD Channels</li>
-                      <li className="flex items-center text-gray-700 font-medium"><CheckCircle2 size={18} className="mr-3 text-green-500"/> SunNXT, Zee5 included</li>
-                  </ul>
-                  <Link to="/book?service=dth&plan=value_prime" className="block w-full py-3 bg-gray-50 hover:bg-gray-100 text-gray-900 font-bold rounded-xl text-center border border-gray-200 transition-colors">Select Pack</Link>
-              </div>
+          {/* Individual IPTV Packs */}
+          <div className="mb-20">
+            <h3 className="text-2xl font-bold text-gray-900 mb-8 flex items-center gap-3">
+              <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center text-purple-600"><Tv size={24}/></div>
+              Individual IPTV (DTH) Packages
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div className="bg-white rounded-3xl p-8 border border-gray-100 shadow-lg hover:shadow-xl transition-shadow">
+                    <div className="text-purple-500 font-bold tracking-wide text-xs mb-4 uppercase">Regional Value</div>
+                    <div className="flex items-baseline mb-6">
+                        <span className="text-4xl font-extrabold text-gray-900">₹300</span>
+                        <span className="text-gray-500 ml-2">/mo</span>
+                    </div>
+                    <ul className="space-y-4 mb-8">
+                        <li className="flex items-center text-gray-700 font-medium"><CheckCircle2 size={18} className="mr-3 text-green-500"/> 250+ SD Channels</li>
+                        <li className="flex items-center text-gray-700 font-medium"><CheckCircle2 size={18} className="mr-3 text-green-500"/> 40+ HD Channels</li>
+                        <li className="flex items-center text-gray-700 font-medium"><CheckCircle2 size={18} className="mr-3 text-green-500"/> Regional Movie Pack</li>
+                    </ul>
+                    <Link to="/book?service=iptv&plan=regional" className="block w-full py-3 bg-purple-50 text-purple-700 font-bold rounded-xl text-center hover:bg-purple-100 transition-colors">Choose IPTV</Link>
+                </div>
+                <div className="bg-slate-900 rounded-3xl p-8 border border-slate-800 shadow-2xl scale-105 z-10">
+                    <div className="text-purple-400 font-bold tracking-wide text-xs mb-4 uppercase">Digital Max</div>
+                    <div className="flex items-baseline mb-6">
+                        <span className="text-4xl font-extrabold text-white">₹450</span>
+                        <span className="text-slate-500 ml-2">/mo</span>
+                    </div>
+                    <ul className="space-y-4 mb-8">
+                        <li className="flex items-center text-slate-300 font-medium"><CheckCircle2 size={18} className="mr-3 text-purple-500"/> 450+ SD Channels</li>
+                        <li className="flex items-center text-slate-300 font-medium"><CheckCircle2 size={18} className="mr-3 text-purple-500"/> 120+ HD Channels</li>
+                        <li className="flex items-center text-slate-300 font-medium"><CheckCircle2 size={18} className="mr-3 text-purple-500"/> Sports & Kids Unlimited</li>
+                    </ul>
+                    <Link to="/book?service=iptv&plan=max" className="block w-full py-4 bg-brand-orange text-white font-bold rounded-xl text-center hover:bg-orange-600 transition-colors shadow-lg shadow-orange-500/20">Get Best IPTV</Link>
+                </div>
+                <div className="bg-white rounded-3xl p-8 border border-gray-100 shadow-lg hover:shadow-xl transition-shadow">
+                    <div className="text-purple-500 font-bold tracking-wide text-xs mb-4 uppercase">Sports HD</div>
+                    <div className="flex items-baseline mb-6">
+                        <span className="text-4xl font-extrabold text-gray-900">₹400</span>
+                        <span className="text-gray-500 ml-2">/mo</span>
+                    </div>
+                    <ul className="space-y-4 mb-8">
+                        <li className="flex items-center text-gray-700 font-medium"><CheckCircle2 size={18} className="mr-3 text-green-500"/> All Sports Channels</li>
+                        <li className="flex items-center text-gray-700 font-medium"><CheckCircle2 size={18} className="mr-3 text-green-500"/> 100+ HD Channels</li>
+                        <li className="flex items-center text-gray-700 font-medium"><CheckCircle2 size={18} className="mr-3 text-green-500"/> English Entertainment</li>
+                    </ul>
+                    <Link to="/book?service=iptv&plan=sports" className="block w-full py-3 bg-purple-50 text-purple-700 font-bold rounded-xl text-center hover:bg-purple-100 transition-colors">Choose IPTV</Link>
+                </div>
+            </div>
+          </div>
 
-              {/* Entertainment Max - NEW & FEATURED */}
-              <div className="bg-slate-900 rounded-3xl p-8 border border-gray-800 shadow-2xl relative md:-translate-y-6">
-                  <div className="absolute top-0 right-0 bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xs font-bold px-4 py-1.5 rounded-bl-xl rounded-tr-2xl">
-                    RECOMMENDED
+          {/* Individual OTT Packs */}
+          <div className="mb-20">
+            <h3 className="text-2xl font-bold text-gray-900 mb-8 flex items-center gap-3">
+              <div className="w-10 h-10 bg-pink-100 rounded-lg flex items-center justify-center text-pink-600"><Film size={24}/></div>
+              Individual OTT Subscriptions
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                {[
+                  { name: 'OTT Basic', price: 300, apps: 'SunNXT, Zee5, Discovery+', color: 'pink' },
+                  { name: 'OTT Movie Master', price: 600, apps: 'Netflix (Basic), Zee5, SonyLIV', color: 'blue' },
+                  { name: 'OTT Pro', price: 900, apps: 'Netflix, Prime, Hotstar, Zee5', color: 'orange' },
+                  { name: 'OTT Yearly Saver', price: 2400, apps: 'All Premium Apps Included', color: 'green', yearly: true },
+                ].map((pack) => (
+                  <div key={pack.name} className="bg-white p-6 rounded-2xl border border-gray-100 shadow-md hover:shadow-lg transition-all text-center">
+                    <h4 className="font-bold text-gray-900 mb-2">{pack.name}</h4>
+                    <div className="text-2xl font-extrabold text-gray-900 mb-4">₹{pack.price}{pack.yearly ? '' : <span className="text-sm text-gray-500 font-medium"> /mo</span>}</div>
+                    <p className="text-xs text-gray-500 mb-6">{pack.apps}</p>
+                    <Link to="/book" className="text-sm font-bold text-primary-600 hover:underline">Select Pack</Link>
                   </div>
-                  <div className="text-purple-400 font-bold tracking-wide text-sm mb-4 uppercase">Entertainment Max</div>
-                  <div className="flex items-baseline mb-6">
-                      <span className="text-5xl font-extrabold text-white">₹650</span>
-                      <span className="text-slate-400 ml-2">/mo</span>
-                  </div>
-                  <p className="text-slate-300 mb-6 text-sm">The ultimate entertainment bundle.</p>
-                  <ul className="space-y-4 mb-8">
-                      <li className="flex items-center text-white font-medium"><CheckCircle2 size={18} className="mr-3 text-purple-500"/> 500+ SD Channels</li>
-                      <li className="flex items-center text-white font-medium"><CheckCircle2 size={18} className="mr-3 text-purple-500"/> 120+ HD Channels</li>
-                      <li className="flex items-center text-white font-medium"><CheckCircle2 size={18} className="mr-3 text-purple-500"/> Netflix Standard</li>
-                      <li className="flex items-center text-white font-medium"><CheckCircle2 size={18} className="mr-3 text-purple-500"/> Amazon Prime Video</li>
-                      <li className="flex items-center text-white font-medium"><CheckCircle2 size={18} className="mr-3 text-purple-500"/> Disney+ Hotstar</li>
-                  </ul>
-                  <Link to="/book?service=dth&plan=entertainment_max" className="block w-full py-4 bg-gradient-to-r from-brand-orange to-orange-600 hover:to-orange-700 text-white font-bold rounded-xl text-center transition-all shadow-lg hover:shadow-orange-500/30">Get Entertainment Max</Link>
-              </div>
+                ))}
+            </div>
+          </div>
 
-              {/* Mega HD */}
-              <div className="bg-white rounded-3xl p-8 border border-gray-200 hover:shadow-xl transition-shadow">
-                  <div className="text-gray-500 font-bold tracking-wide text-sm mb-4 uppercase">Mega HD</div>
-                  <div className="flex items-baseline mb-6">
-                      <span className="text-4xl font-extrabold text-gray-900">₹400</span>
-                      <span className="text-gray-500 ml-2">/mo</span>
-                  </div>
-                  <p className="text-gray-600 mb-6 text-sm">Sports & Movies galore.</p>
-                  <ul className="space-y-4 mb-8">
-                      <li className="flex items-center text-gray-700 font-medium"><CheckCircle2 size={18} className="mr-3 text-green-500"/> 400+ SD Channels</li>
-                      <li className="flex items-center text-gray-700 font-medium"><CheckCircle2 size={18} className="mr-3 text-green-500"/> 80+ HD Channels</li>
-                      <li className="flex items-center text-gray-700 font-medium"><CheckCircle2 size={18} className="mr-3 text-green-500"/> All Sports Channels</li>
-                      <li className="flex items-center text-gray-700 font-medium"><CheckCircle2 size={18} className="mr-3 text-green-500"/> Disney+ Hotstar included</li>
-                  </ul>
-                  <Link to="/book?service=dth&plan=mega_hd" className="block w-full py-3 bg-gray-50 hover:bg-gray-100 text-gray-900 font-bold rounded-xl text-center border border-gray-200 transition-colors">Select Pack</Link>
+          {/* Combo Packs */}
+          <div className="bg-purple-900 rounded-[3rem] p-12 text-white relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2 blur-3xl"></div>
+            <div className="relative z-10 flex flex-col lg:flex-row items-center justify-between gap-12">
+              <div className="lg:w-1/2">
+                <span className="text-brand-orange font-bold uppercase tracking-wider text-sm mb-4 block">Ultimate Savings</span>
+                <h3 className="text-4xl font-display font-bold mb-6">IPTV + OTT Combo Packs</h3>
+                <p className="text-purple-200 text-lg mb-8 leading-relaxed">
+                  Get the best of both worlds. Combine 450+ Live Channels with premium streaming apps and save up to 30% on combined subscriptions.
+                </p>
+                <div className="flex flex-wrap gap-4">
+                  <div className="bg-white/10 px-4 py-2 rounded-lg border border-white/20">Netflix Standard</div>
+                  <div className="bg-white/10 px-4 py-2 rounded-lg border border-white/20">Prime Video</div>
+                  <div className="bg-white/10 px-4 py-2 rounded-lg border border-white/20">SonyLIV</div>
+                  <div className="bg-white/10 px-4 py-2 rounded-lg border border-white/20">Zee5</div>
+                </div>
               </div>
+              <div className="lg:w-1/3 bg-white text-slate-900 p-8 rounded-3xl shadow-2xl text-center">
+                <div className="text-purple-600 font-bold text-sm mb-2">MOST POPULAR COMBO</div>
+                <h4 className="text-2xl font-bold mb-4">Entertainment Max Combo</h4>
+                <div className="text-5xl font-extrabold text-slate-900 mb-6">₹1250<span className="text-lg text-slate-400 font-medium">/mo</span></div>
+                <ul className="text-left space-y-3 mb-8">
+                  <li className="flex items-center gap-2"><CheckCircle2 size={16} className="text-green-500"/> 500+ HD Channels</li>
+                  <li className="flex items-center gap-2"><CheckCircle2 size={16} className="text-green-500"/> All Premium OTT Apps</li>
+                  <li className="flex items-center gap-2"><CheckCircle2 size={16} className="text-green-500"/> Static IP Support</li>
+                </ul>
+                <Link to="/book" className="block w-full py-4 bg-purple-600 text-white font-bold rounded-xl hover:bg-purple-700 transition-colors shadow-lg shadow-purple-200">Get the Combo</Link>
+              </div>
+            </div>
           </div>
         </div>
       </section>
