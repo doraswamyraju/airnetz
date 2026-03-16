@@ -19,7 +19,12 @@ import Reports from './pages/admin/Reports';
 import Payments from './pages/admin/Payments';
 import ActiveAgents from './pages/admin/ActiveAgents';
 import Login from './pages/Login';
+import AgentLayout from './components/agent/AgentLayout';
 import AgentDashboard from './pages/agent/AgentDashboard';
+import AgentTasks from './pages/agent/Tasks';
+import AgentCustomers from './pages/agent/Customers';
+import AgentPayments from './pages/agent/Payments';
+import AgentReports from './pages/agent/Reports';
 import CustomerDashboard from './pages/customer/CustomerDashboard';
 
 const ScrollToTop = () => {
@@ -69,7 +74,17 @@ const App: React.FC = () => {
           <Route path="/book" element={<BookConnection />} />
           <Route path="/support" element={<Support />} />
           <Route path="/login" element={<Login />} />
-          <Route path="/agent" element={<AgentDashboard />} />
+          
+          {/* Agent Routes */}
+          <Route path="/agent" element={<AgentLayout />}>
+            <Route index element={<AgentDashboard />} />
+            <Route path="tasks" element={<AgentTasks />} />
+            <Route path="customers" element={<AgentCustomers />} />
+            <Route path="payments" element={<AgentPayments />} />
+            <Route path="reports" element={<AgentReports />} />
+            <Route path="settings" element={<div className="p-8 text-center text-gray-500 font-sans">Profile Settings Coming Soon</div>} />
+          </Route>
+
           <Route path="/customer" element={<CustomerDashboard />} />
         </Route>
       </Routes>
