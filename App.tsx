@@ -27,6 +27,8 @@ import AgentPayments from './pages/agent/Payments';
 import AgentReports from './pages/agent/Reports';
 import CustomerLayout from './components/customer/CustomerLayout';
 import CustomerDashboard from './pages/customer/CustomerDashboard';
+import CustomerBilling from './pages/customer/Billing';
+import CustomerSupport from './pages/customer/Support';
 
 const ScrollToTop = () => {
   const { pathname } = useLocation();
@@ -90,9 +92,9 @@ const App: React.FC = () => {
         {/* Customer Routes */}
         <Route path="/customer" element={<CustomerLayout />}>
           <Route index element={<CustomerDashboard />} />
+          <Route path="billing" element={<CustomerBilling />} />
+          <Route path="support" element={<CustomerSupport />} />
           <Route path="plans" element={<div className="p-8 text-center text-gray-500 font-sans">Plan Details Coming Soon</div>} />
-          <Route path="billing" element={<div className="p-8 text-center text-gray-500 font-sans">Billing History Coming Soon</div>} />
-          <Route path="support" element={<div className="p-8 text-center text-gray-500 font-sans">Customer Support Coming Soon</div>} />
           <Route path="settings" element={<div className="p-8 text-center text-gray-500 font-sans">Account Settings Coming Soon</div>} />
         </Route>
       </Routes>
