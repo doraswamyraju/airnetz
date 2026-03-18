@@ -52,6 +52,13 @@ export const api = {
     return res.json();
   },
 
+  deleteCustomer: async (id: number) => {
+    const res = await fetch(`${API_BASE}/admin/customers/${id}`, {
+      method: 'DELETE',
+    });
+    return res.json();
+  },
+
   createAdminCustomer: async (customerData: any) => {
     const res = await fetch(`${API_BASE}/admin/customers`, {
       method: 'POST',

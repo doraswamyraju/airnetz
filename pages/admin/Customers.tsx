@@ -81,6 +81,18 @@ const Customers: React.FC = () => {
         }
     };
 
+    const handleDeleteCustomer = async (id: number) => {
+        if (window.confirm('Are you sure you want to delete this customer? This will also delete their associated user account.')) {
+            try {
+                await api.deleteCustomer(id);
+                fetchCustomers();
+            } catch (err) {
+                console.error('Failed to delete customer', err);
+                alert('Failed to delete customer');
+            }
+        }
+    };
+
     const filteredCustomers = customers.filter(customer => 
         customer.customer_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         customer.phone.includes(searchTerm) ||
@@ -104,7 +116,7 @@ const Customers: React.FC = () => {
                 </div>
                 <button 
                   onClick={() => setIsModalOpen(true)}
-                  className="bg-brand-orange text-white px-4 py-2 rounded-lg hover:bg-orange-600 transition-colors flex items-center justify-center gap-2">
+                  className="w-full sm:w-auto bg-brand-orange text-white px-5 py-2.5 rounded-lg hover:bg-orange-600 transition-all flex items-center justify-center gap-2 shadow-sm font-medium">
                     <Plus size={20} />
                     <span>Add New Customer</span>
                 </button>
@@ -167,7 +179,9 @@ const Customers: React.FC = () => {
                                                 <button className="p-2 hover:bg-gray-100 rounded-lg text-gray-500 transition-colors">
                                                     <Edit2 size={16} />
                                                 </button>
-                                                <button className="p-2 hover:bg-red-50 rounded-lg text-red-500 transition-colors">
+                                                <button 
+                                                  onClick={() => handleDeleteCustomer(customer.id)}
+                                                  className="p-2 hover:bg-red-50 rounded-lg text-red-500 transition-colors">
                                                     <Trash2 size={16} />
                                                 </button>
                                                 <button className="p-2 hover:bg-gray-100 rounded-lg text-gray-500 transition-colors">

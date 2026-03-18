@@ -81,25 +81,35 @@ const AdminLayout: React.FC = () => {
         <header className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-4 lg:px-8 sticky top-0 z-30">
           <button
             onClick={() => setIsSidebarOpen(true)}
-            className="p-2 -ml-2 text-gray-600 hover:bg-gray-100 rounded-lg lg:hidden"
+            className="p-2 -ml-2 text-gray-600 hover:bg-gray-100 rounded-lg lg:hidden transition-colors"
           >
             <Menu size={24} />
           </button>
 
-          <div className="flex items-center gap-4 ml-auto">
-            <button className="p-2 text-gray-500 hover:bg-gray-100 rounded-full relative">
+          <div className="flex-1 px-4 lg:hidden">
+            <span className="text-lg font-bold text-brand-orange truncate">Airnetz Admin</span>
+          </div>
+
+          <div className="flex items-center gap-2 sm:gap-4 ml-auto">
+            <button className="p-2 text-gray-500 hover:bg-gray-100 rounded-full relative transition-colors">
               <Bell size={20} />
               <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border border-white"></span>
             </button>
-            <div className="h-8 w-8 rounded-full bg-brand-orange/20 flex items-center justify-center text-brand-orange font-medium text-sm">
-              AD
+            <div className="flex items-center gap-3 pl-2 border-l border-gray-100">
+              <div className="hidden sm:block text-right">
+                <p className="text-sm font-medium text-gray-900">Admin</p>
+                <p className="text-xs text-gray-500">Administrator</p>
+              </div>
+              <div className="h-9 w-9 rounded-full bg-brand-orange/10 border border-brand-orange/20 flex items-center justify-center text-brand-orange font-bold text-sm shadow-sm">
+                AD
+              </div>
             </div>
           </div>
         </header>
 
         {/* Page Content */}
-        <main className="flex-1 p-4 lg:p-8 overflow-y-auto">
-          <div className="max-w-5xl mx-auto">
+        <main className="flex-1 p-3 sm:p-6 lg:p-8 overflow-y-auto bg-gray-50/50">
+          <div className="max-w-7xl mx-auto">
             <Outlet />
           </div>
         </main>

@@ -101,7 +101,7 @@ const AdminRequests: React.FC = () => {
           <h1 className="text-2xl font-bold text-gray-900">Service Requests</h1>
           <p className="text-gray-500 mt-1">Manage and track customer tickets</p>
         </div>
-        <button onClick={() => setIsModalOpen(true)} className="bg-brand-orange text-white px-4 py-2 rounded-lg font-medium hover:bg-orange-600 transition-colors">
+        <button onClick={() => setIsModalOpen(true)} className="w-full sm:w-auto bg-brand-orange text-white px-5 py-2.5 rounded-lg font-medium hover:bg-orange-600 transition-all shadow-sm">
           + New Request
         </button>
       </div>

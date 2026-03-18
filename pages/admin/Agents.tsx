@@ -115,7 +115,7 @@ const Agents: React.FC = () => {
                 </div>
                 <button 
                   onClick={() => setIsModalOpen(true)}
-                  className="bg-brand-orange text-white px-4 py-2 rounded-lg hover:bg-orange-600 transition-colors flex items-center justify-center gap-2">
+                  className="w-full sm:w-auto bg-brand-orange text-white px-5 py-2.5 rounded-lg hover:bg-orange-600 transition-all flex items-center justify-center gap-2 shadow-sm font-medium">
                     <Plus size={20} />
                     <span>Add New Agent</span>
                 </button>

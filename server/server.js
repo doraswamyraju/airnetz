@@ -220,11 +220,11 @@ app.post('/api/admin/agents', async (req, res) => {
     };
     try {
       await transporter.sendMail(mailOptions);
+      res.json({ success: true, id: result.insertId, name, email, phone, location, defaultPassword });
     } catch (e) {
       console.error('Agent email failed:', e);
+      res.json({ success: true, warning: 'Agent created but email failed: ' + e.message, id: result.insertId });
     }
-
-    res.json({ success: true, id: result.insertId, name, email, phone, location, defaultPassword });
   } catch (error) {
     if (error.code === 'ER_DUP_ENTRY') {
       res.status(400).json({ message: 'Email already exists' });

@@ -129,42 +129,44 @@ const AdminDashboard: React.FC = () => {
             <h2 className="font-semibold text-gray-900">Latest Service Requests</h2>
             <button className="text-sm text-brand-orange font-medium hover:text-brand-dark" onClick={() => window.location.hash = '#/admin/requests'}>View All</button>
           </div>
-          <div className="divide-y divide-gray-100">
-            {requests.length > 0 ? (
-              requests.slice(0, 4).map((req) => (
-                <div key={req.id} className="p-4 hover:bg-gray-50 transition-colors flex items-center justify-between">
-                  <div className="flex items-center gap-4">
-                    <div className={`w-2 h-2 rounded-full ${req.priority === 'High' ? 'bg-red-500' :
-                        req.priority === 'Medium' ? 'bg-yellow-500' : 'bg-blue-500'
-                      }`} />
-                    <div>
-                      <p className="font-medium text-gray-900">{req.customer_name}</p>
-                      <p className="text-sm text-gray-500">{req.type} • {req.id}</p>
+          <div className="overflow-x-auto overflow-y-hidden">
+            <div className="min-w-[600px] lg:min-w-0 divide-y divide-gray-100">
+              {requests.length > 0 ? (
+                requests.slice(0, 4).map((req) => (
+                  <div key={req.id} className="p-4 hover:bg-gray-50 transition-colors flex items-center justify-between whitespace-nowrap lg:whitespace-normal">
+                    <div className="flex items-center gap-4">
+                      <div className={`w-2 h-2 rounded-full flex-shrink-0 ${req.priority === 'High' ? 'bg-red-500' :
+                          req.priority === 'Medium' ? 'bg-yellow-500' : 'bg-blue-500'
+                        }`} />
+                      <div>
+                        <p className="font-medium text-gray-900">{req.customer_name}</p>
+                        <p className="text-sm text-gray-500">{req.type} • {req.id}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <span className={`px-3 py-1 rounded-full text-xs font-medium flex-shrink-0 ${req.status === 'Pending' ? 'bg-yellow-100 text-yellow-700' :
+                          req.status === 'In Progress' ? 'bg-blue-100 text-blue-700' :
+                            'bg-green-100 text-green-700'
+                        }`}>
+                        {req.status}
+                      </span>
+                      {req.status === 'Pending' && (
+                        <button 
+                          onClick={() => {
+                            setSelectedRequestId(req.id);
+                            setIsAssignModalOpen(true);
+                          }}
+                          className="text-xs bg-brand-orange text-white px-3 py-1.5 rounded-lg hover:bg-orange-600 transition-colors font-medium flex-shrink-0">
+                          Assign Agent
+                        </button>
+                      )}
                     </div>
                   </div>
-                  <div className="flex items-center gap-3">
-                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${req.status === 'Pending' ? 'bg-yellow-100 text-yellow-700' :
-                        req.status === 'In Progress' ? 'bg-blue-100 text-blue-700' :
-                          'bg-green-100 text-green-700'
-                      }`}>
-                      {req.status}
-                    </span>
-                    {req.status === 'Pending' && (
-                      <button 
-                        onClick={() => {
-                          setSelectedRequestId(req.id);
-                          setIsAssignModalOpen(true);
-                        }}
-                        className="text-xs bg-brand-orange text-white px-3 py-1.5 rounded-lg hover:bg-orange-600 transition-colors font-medium">
-                        Assign Agent
-                      </button>
-                    )}
-                  </div>
-                </div>
-              ))
-            ) : (
-                <div className="p-8 text-center text-gray-500">No requests found</div>
-            )}
+                ))
+              ) : (
+                  <div className="p-8 text-center text-gray-400">No recent requests</div>
+              )}
+            </div>
           </div>
         </div>
 
