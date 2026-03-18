@@ -122,10 +122,67 @@ app.get('/api/admin/requests', async (req, res) => {
   }
 });
 
+// Migration Endpoint
+app.get('/api/admin/migrate', async (req, res) => {
+  try {
+    await pool.query('ALTER TABLE users ADD COLUMN phone VARCHAR(20) NULL');
+    await pool.query('ALTER TABLE users ADD COLUMN location VARCHAR(255) NULL');
+    await pool.query('ALTER TABLE users ADD COLUMN is_active BOOLEAN DEFAULT TRUE');
+    await pool.query('ALTER TABLE payments ADD COLUMN agent_id INT NULL');
+    await pool.query('ALTER TABLE payments ADD COLUMN commission_amount DECIMAL(10, 2) DEFAULT 0.00');
+    res.json({ message: 'Migration successful' });
+  } catch (error) {
+    res.json({ message: 'Migration skipped or failed', error: error.message });
+  }
+});
+
+// Admin Payments Endpoint
+app.get('/api/admin/payments', async (req, res) => {
+  try {
+    const [payments] = await pool.query(`
+      SELECT p.id, p.amount, DATE_FORMAT(p.payment_date, '%d %b %Y') as date, 
+             p.status, p.commission_amount,
+             c.user_id, u_cust.name as customer_name,
+             u_agent.name as agent_name
+      FROM payments p
+      LEFT JOIN customers c ON p.customer_id = c.id
+      LEFT JOIN users u_cust ON c.user_id = u_cust.id
+      LEFT JOIN users u_agent ON p.agent_id = u_agent.id
+      ORDER BY p.id DESC
+    `);
+
+    // Calculate aggregated stats
+    const totalRevenue = payments.reduce((sum, p) => p.status === 'success' ? sum + Number(p.amount) : sum, 0);
+    const pendingAmount = payments.reduce((sum, p) => p.status === 'pending' ? sum + Number(p.amount) : sum, 0);
+    const totalCommissions = payments.reduce((sum, p) => p.status === 'success' ? sum + Number(p.commission_amount) : sum, 0);
+
+    const data = {
+      transactions: payments.map(p => ({
+        id: `PAY-${p.id + 1000}`,
+        date: p.date,
+        customer: p.customer_name || 'Unknown',
+        amount: `₹${Number(p.amount).toLocaleString()}`,
+        agent: p.agent_name || 'Direct / System',
+        commission: `₹${Number(p.commission_amount).toLocaleString()}`,
+        status: p.status === 'success' ? 'Completed' : 'Pending'
+      })),
+      stats: {
+        totalRevenue: `₹${totalRevenue.toLocaleString()}`,
+        pendingAmount: `₹${pendingAmount.toLocaleString()}`,
+        totalCommissions: `₹${totalCommissions.toLocaleString()}`
+      }
+    };
+    
+    res.json(data);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
 // Get list of agents
 app.get('/api/admin/agents', async (req, res) => {
   try {
-    const [rows] = await pool.query('SELECT id, name, email FROM users WHERE role = "agent"');
+    const [rows] = await pool.query('SELECT id, name, email, phone, location, is_active FROM users WHERE role = "agent"');
     res.json(rows);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -134,20 +191,130 @@ app.get('/api/admin/agents', async (req, res) => {
 
 // Create new agent
 app.post('/api/admin/agents', async (req, res) => {
-  const { name, email } = req.body;
+  const { name, email, phone, location } = req.body;
   try {
     const defaultPassword = 'agent' + Math.floor(100 + Math.random() * 900);
     const [result] = await pool.query(
-      'INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, ?)',
-      [name, email, defaultPassword, 'agent']
+      'INSERT INTO users (name, email, password, role, phone, location, is_active) VALUES (?, ?, ?, ?, ?, ?, ?)',
+      [name, email, defaultPassword, 'agent', phone, location, true]
     );
-    res.json({ success: true, id: result.insertId, name, email, defaultPassword });
+
+    // Send Welcome Email
+    const mailOptions = {
+      from: `"Airnetz Support" <${process.env.EMAIL_USER}>`,
+      to: email,
+      subject: 'Airnetz Agent Portal - Your Account Details',
+      html: `
+        <div style="font-family: sans-serif; color: #333; max-width: 600px; margin: auto;">
+          <h2 style="color: #f97316;">Welcome to the Airnetz Team!</h2>
+          <p>Hello ${name},</p>
+          <p>An agent account has been created for you. You can now login to the Agent Portal.</p>
+          <div style="background: #f3f4f6; padding: 20px; border-radius: 10px; margin: 20px 0;">
+            <p style="margin: 0; font-weight: bold;">Your Login Credentials:</p>
+            <p><strong>Email:</strong> ${email}</p>
+            <p><strong>Password:</strong> ${defaultPassword}</p>
+          </div>
+          <p>Please log in at: <a href="http://airnetz.sriddha.com/login" style="color: #f97316;">airnetz.sriddha.com/login</a></p>
+        </div>
+      `
+    };
+    try {
+      await transporter.sendMail(mailOptions);
+    } catch (e) {
+      console.error('Agent email failed:', e);
+    }
+
+    res.json({ success: true, id: result.insertId, name, email, phone, location, defaultPassword });
   } catch (error) {
     if (error.code === 'ER_DUP_ENTRY') {
       res.status(400).json({ message: 'Email already exists' });
     } else {
       res.status(500).json({ message: error.message });
     }
+  }
+});
+
+// Toggle Agent Status
+app.put('/api/admin/agents/:id/status', async (req, res) => {
+  const { is_active } = req.body;
+  try {
+    await pool.query('UPDATE users SET is_active = ? WHERE id = ? AND role = "agent"', [is_active, req.params.id]);
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// Resend Agent Password
+app.post('/api/admin/agents/:id/resend-password', async (req, res) => {
+  try {
+    const [users] = await pool.query('SELECT name, email FROM users WHERE id = ? AND role = "agent"', [req.params.id]);
+    if (users.length === 0) return res.status(404).json({ message: 'Agent not found' });
+    
+    const agent = users[0];
+    const newPassword = 'agent' + Math.floor(100 + Math.random() * 900);
+    
+    await pool.query('UPDATE users SET password = ? WHERE id = ?', [newPassword, req.params.id]);
+
+    const mailOptions = {
+      from: `"Airnetz Support" <${process.env.EMAIL_USER}>`,
+      to: agent.email,
+      subject: 'Airnetz Agent Portal - Password Reset',
+      html: `
+        <div style="font-family: sans-serif; color: #333; max-width: 600px; margin: auto;">
+          <h2 style="color: #f97316;">Password Reset Request</h2>
+          <p>Hello ${agent.name},</p>
+          <p>Your password for the Airnetz Agent Portal has been reset by an administrator.</p>
+          <div style="background: #f3f4f6; padding: 20px; border-radius: 10px; margin: 20px 0;">
+            <p style="margin: 0; font-weight: bold;">Your New Login Credentials:</p>
+            <p><strong>Email:</strong> ${agent.email}</p>
+            <p><strong>New Password:</strong> ${newPassword}</p>
+          </div>
+          <p>Please log in at: <a href="http://airnetz.sriddha.com/login" style="color: #f97316;">airnetz.sriddha.com/login</a></p>
+        </div>
+      `
+    };
+    await transporter.sendMail(mailOptions);
+    res.json({ success: true, message: 'Password reset and email sent successfully.' });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// Delete Agent
+app.delete('/api/admin/agents/:id', async (req, res) => {
+  try {
+    await pool.query('DELETE FROM users WHERE id = ? AND role = "agent"', [req.params.id]);
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+// Get live agent tracking data
+app.get('/api/admin/agents/live', async (req, res) => {
+  try {
+    const [agents] = await pool.query(`
+      SELECT u.id, u.name, u.phone, u.location, u.is_active,
+             sr.id as active_request_id, sr.type as task_type, sr.status as task_status, sr.address as destination
+      FROM users u
+      LEFT JOIN service_requests sr ON u.id = sr.agent_id AND sr.status = 'In Progress'
+      WHERE u.role = 'agent' AND u.is_active = 1
+    `);
+    
+    // Format response
+    const trackingData = agents.map(agent => ({
+      id: agent.id,
+      name: agent.name,
+      phone: agent.phone,
+      location: agent.location || 'Unknown',
+      status: agent.active_request_id ? 'Working' : 'Available',
+      destination: agent.destination || agent.location || 'Station',
+      task: agent.task_type || null
+    }));
+
+    res.json(trackingData);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
   }
 });
 
@@ -164,6 +331,145 @@ app.get('/api/admin/customers', async (req, res) => {
     res.json(rows);
   } catch (error) {
     res.status(500).json({ message: error.message });
+  }
+});
+// Create New Customer (Manual Onboarding)
+app.post('/api/admin/customers', async (req, res) => {
+  const { name, email, phone, address, plan_id } = req.body;
+  try {
+    let userId;
+    let isNewUser = false;
+    let initialPassword = '';
+
+    // 1. Check if User exists by email
+    const [existingUsers] = await pool.query('SELECT id FROM users WHERE email = ?', [email]);
+    if (existingUsers.length > 0) {
+      userId = existingUsers[0].id;
+    } else {
+      // Create new user
+      initialPassword = 'pass' + Math.floor(1000 + Math.random() * 9000);
+      const [userResult] = await pool.query(
+        'INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, ?)',
+        [name, email, initialPassword, 'customer']
+      );
+      userId = userResult.insertId;
+      isNewUser = true;
+    }
+
+    // 2. Check/Create Customer Profile
+    const [existingCust] = await pool.query('SELECT id FROM customers WHERE user_id = ?', [userId]);
+    if (existingCust.length === 0) {
+      await pool.query(
+        'INSERT INTO customers (user_id, address, phone, plan_id, status) VALUES (?, ?, ?, ?, ?)',
+        [userId, address, phone, plan_id || null, 'active']
+      );
+    } else {
+      // Update existing profile fields if they provided them
+      await pool.query('UPDATE customers SET address = ?, phone = ?, plan_id = COALESCE(?, plan_id) WHERE user_id = ?', [address, phone, plan_id || null, userId]);
+    }
+
+    // 3. Send Onboarding Email only if New User
+    if (isNewUser) {
+      const mailOptions = {
+        from: `"Airnetz Support" <${process.env.EMAIL_USER}>`,
+        to: email,
+        subject: 'Airnetz - Your Customer Account Details',
+        html: `
+          <div style="font-family: sans-serif; color: #333; max-width: 600px; margin: auto;">
+            <h2 style="color: #f97316;">Welcome to Airnetz!</h2>
+            <p>Hello ${name},</p>
+            <p>Your customer account has been created by our administration team.</p>
+            <div style="background: #f3f4f6; padding: 20px; border-radius: 10px; margin: 20px 0;">
+              <p style="margin: 0; font-weight: bold;">Your Login Credentials:</p>
+              <p><strong>Email:</strong> ${email}</p>
+              <p><strong>Temporary Password:</strong> ${initialPassword}</p>
+            </div>
+            <p>Please log in at: <a href="http://airnetz.sriddha.com/login" style="color: #f97316;">airnetz.sriddha.com/login</a> to manage your account and track services.</p>
+          </div>
+        `
+      };
+      try {
+        await transporter.sendMail(mailOptions);
+        console.log(`Manual onboarding email sent to ${email}`);
+      } catch (e) {
+        console.error('Customer email failed:', e);
+      }
+    }
+
+    res.json({ success: true, isNewUser, initialPassword, message: isNewUser ? 'Customer created and email sent' : 'Existing user updated as customer' });
+  } catch (error) {
+    console.error('Customer Creation Error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Create New Service Request (Admin Dashboard)
+app.post('/api/admin/requests', async (req, res) => {
+  const { name, email, phone, address, type, priority, agent_id, description } = req.body;
+  try {
+    let userId;
+    let isNewUser = false;
+    let initialPassword = '';
+
+    // 1. Find or Create User
+    const [existingUsers] = await pool.query('SELECT id FROM users WHERE email = ?', [email]);
+    if (existingUsers.length > 0) {
+      userId = existingUsers[0].id;
+    } else {
+      initialPassword = 'pass' + Math.floor(1000 + Math.random() * 9000);
+      const [userResult] = await pool.query(
+        'INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, ?)',
+        [name, email, initialPassword, 'customer']
+      );
+      userId = userResult.insertId;
+      isNewUser = true;
+
+      // Send User Onboarding Email
+      const mailOptions = {
+        from: `"Airnetz Support" <${process.env.EMAIL_USER}>`,
+        to: email,
+        subject: 'Airnetz - Welcome and Track your Request',
+        html: `
+          <div style="font-family: sans-serif; color: #333; max-width: 600px; margin: auto;">
+            <h2 style="color: #f97316;">Welcome to Airnetz!</h2>
+            <p>Hello ${name},</p>
+            <p>A new service request has been logged. We've also set up a customer account for you.</p>
+            <div style="background: #fdf2f2; padding: 15px; border-radius: 10px; margin: 20px 0;">
+              <p><strong>Login Email:</strong> ${email}</p>
+              <p><strong>Temporary Password:</strong> ${initialPassword}</p>
+            </div>
+            <p>Login at <a href="http://airnetz.sriddha.com/login" style="color:#f97316;">airnetz.sriddha.com/login</a> to track your ticket!</p>
+          </div>
+        `
+      };
+      await transporter.sendMail(mailOptions);
+    }
+
+    // 2. Ensure Customer Profile
+    let customerId;
+    const [existingCust] = await pool.query('SELECT id FROM customers WHERE user_id = ?', [userId]);
+    if (existingCust.length === 0) {
+      const [newCust] = await pool.query(
+        'INSERT INTO customers (user_id, address, phone, status) VALUES (?, ?, ?, ?)',
+        [userId, address, phone, 'active']
+      );
+      customerId = newCust.insertId;
+    } else {
+      customerId = existingCust[0].id;
+    }
+
+    // 3. Create Request
+    const requestId = `SR-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`;
+    const status = agent_id ? 'In Progress' : 'Pending';
+    await pool.query(
+      'INSERT INTO service_requests (id, customer_id, type, description, address, phone, priority, status, agent_id, requested_date) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, CURDATE())',
+      [requestId, customerId, type, description || `New manual request for ${type}`, address, phone, priority || 'Medium', status, agent_id || null]
+    );
+
+    res.json({ success: true, requestId, isNewUser, initialPassword });
+  } catch (err) {
+    console.error('Request Creation Error:', err);
+    res.status(500).json({ error: err.message });
   }
 });
 

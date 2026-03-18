@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Users, UserCircle, CreditCard, ClipboardList, TrendingUp, Bell } from 'lucide-react';
+import { Users, UserCircle, CreditCard, ClipboardList, TrendingUp, Bell, X } from 'lucide-react';
 import { api } from '../../services/api';
 
 const StatCard = ({ title, value, icon: Icon, color, trend }: any) => (
@@ -26,17 +26,26 @@ const StatCard = ({ title, value, icon: Icon, color, trend }: any) => (
 const AdminDashboard: React.FC = () => {
   const [stats, setStats] = useState<any>(null);
   const [requests, setRequests] = useState<any[]>([]);
+  const [agents, setAgents] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  
+  // Assignment Modal
+  const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
+  const [selectedRequestId, setSelectedRequestId] = useState<string | null>(null);
+  const [selectedAgentId, setSelectedAgentId] = useState('');
+  const [isAssigning, setIsAssigning] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [statsData, requestsData] = await Promise.all([
+        const [statsData, requestsData, agentsData] = await Promise.all([
           api.getStats(),
-          api.getAdminRequests()
+          api.getAdminRequests(),
+          api.getAgents()
         ]);
         setStats(statsData);
         setRequests(requestsData);
+        setAgents(agentsData.filter((a: any) => a.is_active));
       } catch (error) {
         console.error('Failed to fetch dashboard data', error);
       } finally {
@@ -45,6 +54,29 @@ const AdminDashboard: React.FC = () => {
     };
     fetchData();
   }, []);
+
+  const handleAssignSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedRequestId || !selectedAgentId) return;
+
+    setIsAssigning(true);
+    try {
+      await api.assignTechnician(selectedRequestId, parseInt(selectedAgentId));
+      
+      // Refresh requests to show updated status
+      const updatedReqs = await api.getAdminRequests();
+      setRequests(updatedReqs);
+      
+      setIsAssignModalOpen(false);
+      setSelectedRequestId(null);
+      setSelectedAgentId('');
+    } catch (err) {
+      console.error('Failed to assign agent', err);
+      alert('Failed to assign agent');
+    } finally {
+      setIsAssigning(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -110,12 +142,24 @@ const AdminDashboard: React.FC = () => {
                       <p className="text-sm text-gray-500">{req.type} • {req.id}</p>
                     </div>
                   </div>
-                  <span className={`px-3 py-1 rounded-full text-xs font-medium ${req.status === 'Pending' ? 'bg-yellow-100 text-yellow-700' :
-                      req.status === 'In Progress' ? 'bg-blue-100 text-blue-700' :
-                        'bg-green-100 text-green-700'
-                    }`}>
-                    {req.status}
-                  </span>
+                  <div className="flex items-center gap-3">
+                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${req.status === 'Pending' ? 'bg-yellow-100 text-yellow-700' :
+                        req.status === 'In Progress' ? 'bg-blue-100 text-blue-700' :
+                          'bg-green-100 text-green-700'
+                      }`}>
+                      {req.status}
+                    </span>
+                    {req.status === 'Pending' && (
+                      <button 
+                        onClick={() => {
+                          setSelectedRequestId(req.id);
+                          setIsAssignModalOpen(true);
+                        }}
+                        className="text-xs bg-brand-orange text-white px-3 py-1.5 rounded-lg hover:bg-orange-600 transition-colors font-medium">
+                        Assign Agent
+                      </button>
+                    )}
+                  </div>
                 </div>
               ))
             ) : (
@@ -153,6 +197,42 @@ const AdminDashboard: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Assignment Modal */}
+      {isAssignModalOpen && (
+        <div className="fixed inset-0 bg-black/50 flex flex-col items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl w-full max-w-sm shadow-xl overflow-hidden animate-fade-in">
+            <div className="p-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+              <h2 className="font-bold text-gray-900">Assign Request {selectedRequestId}</h2>
+              <button onClick={() => setIsAssignModalOpen(false)} className="text-gray-400 hover:text-gray-600">
+                <X size={20} />
+              </button>
+            </div>
+            <form onSubmit={handleAssignSubmit} className="p-4 space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Select Active Agent</label>
+                <select 
+                  required
+                  value={selectedAgentId} 
+                  onChange={(e) => setSelectedAgentId(e.target.value)} 
+                  className="w-full px-3 py-2 border rounded-lg focus:ring-1 focus:ring-brand-orange"
+                >
+                  <option value="">-- Choose Agent --</option>
+                  {agents.map(agent => (
+                    <option key={agent.id} value={agent.id}>{agent.name} {agent.location ? `(${agent.location})` : ''}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="pt-2 flex gap-2">
+                <button type="button" onClick={() => setIsAssignModalOpen(false)} className="flex-1 px-3 py-2 border text-gray-600 rounded-lg hover:bg-gray-50 font-medium">Cancel</button>
+                <button type="submit" disabled={isAssigning} className="flex-1 px-3 py-2 bg-brand-orange text-white rounded-lg hover:bg-orange-600 font-medium disabled:opacity-50">
+                  {isAssigning ? 'Assigning...' : 'Confirm'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

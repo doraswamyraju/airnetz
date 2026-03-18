@@ -52,8 +52,36 @@ export const api = {
     return res.json();
   },
 
+  createAdminCustomer: async (customerData: any) => {
+    const res = await fetch(`${API_BASE}/admin/customers`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(customerData)
+    });
+    return res.json();
+  },
+
+  createAdminRequest: async (requestData: any) => {
+    const res = await fetch(`${API_BASE}/admin/requests`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(requestData)
+    });
+    return res.json();
+  },
+
   getAgents: async () => {
     const res = await fetch(`${API_BASE}/admin/agents`);
+    return res.json();
+  },
+
+  getLiveAgents: async () => {
+    const res = await fetch(`${API_BASE}/admin/agents/live`);
+    return res.json();
+  },
+
+  getAdminPayments: async () => {
+    const res = await fetch(`${API_BASE}/admin/payments`);
     return res.json();
   },
 
@@ -62,6 +90,29 @@ export const api = {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(agentData)
+    });
+    return res.json();
+  },
+
+  updateAgentStatus: async (agentId: number, is_active: boolean) => {
+    const res = await fetch(`${API_BASE}/admin/agents/${agentId}/status`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ is_active })
+    });
+    return res.json();
+  },
+
+  resendAgentPassword: async (agentId: number) => {
+    const res = await fetch(`${API_BASE}/admin/agents/${agentId}/resend-password`, {
+      method: 'POST'
+    });
+    return res.json();
+  },
+
+  deleteAgent: async (agentId: number) => {
+    const res = await fetch(`${API_BASE}/admin/agents/${agentId}`, {
+      method: 'DELETE'
     });
     return res.json();
   },

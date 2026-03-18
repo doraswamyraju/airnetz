@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Plus, MoreVertical, Edit2, Trash2, X } from 'lucide-react';
+import { Search, Plus, MoreVertical, Edit2, Trash2, X, Mail, Power } from 'lucide-react';
 import { api } from '../../services/api';
 
 const Agents: React.FC = () => {
@@ -11,6 +11,8 @@ const Agents: React.FC = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [newName, setNewName] = useState('');
     const [newEmail, setNewEmail] = useState('');
+    const [newPhone, setNewPhone] = useState('');
+    const [newLocation, setNewLocation] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState('');
     const [successMsg, setSuccessMsg] = useState('');
@@ -37,13 +39,15 @@ const Agents: React.FC = () => {
         setIsSubmitting(true);
 
         try {
-            const res = await api.createAgent({ name: newName, email: newEmail });
+            const res = await api.createAgent({ name: newName, email: newEmail, phone: newPhone, location: newLocation });
             if (res.error || res.message) {
                  setError(res.error || res.message);
             } else if (res.success) {
                 setSuccessMsg(`Agent created successfully! Temp Password: ${res.defaultPassword}`);
                 setNewName('');
                 setNewEmail('');
+                setNewPhone('');
+                setNewLocation('');
                 fetchAgents(); // Refresh list
                 setTimeout(() => {
                     setIsModalOpen(false);
@@ -54,6 +58,38 @@ const Agents: React.FC = () => {
             setError(err.message || 'Failed to create agent');
         } finally {
             setIsSubmitting(false);
+        }
+    };
+
+    const handleToggleStatus = async (id: number, currentStatus: number) => {
+        try {
+            await api.updateAgentStatus(id, !currentStatus);
+            fetchAgents();
+        } catch (err) {
+            console.error('Failed to update status', err);
+        }
+    };
+
+    const handleResendPassword = async (id: number) => {
+        if (window.confirm('Are you sure you want to reset and resend the password for this agent?')) {
+            try {
+                await api.resendAgentPassword(id);
+                alert('Password reset successfully. Email sent to agent.');
+            } catch (err) {
+                console.error('Failed to resend password', err);
+                alert('Failed to resend password. Check console.');
+            }
+        }
+    };
+
+    const handleDeleteAgent = async (id: number) => {
+        if (window.confirm('Are you sure you want to delete this agent? This cannot be undone.')) {
+            try {
+                await api.deleteAgent(id);
+                fetchAgents();
+            } catch (err) {
+                console.error('Failed to delete agent', err);
+            }
         }
     };
 
@@ -126,21 +162,21 @@ const Agents: React.FC = () => {
                                         </td>
                                         <td className="p-4 text-sm text-gray-600">{agent.email}</td>
                                         <td className="p-4">
-                                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700`}>
-                                                <span className={`w-1.5 h-1.5 rounded-full mr-1.5 bg-green-500`}></span>
-                                                Active
+                                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${agent.is_active ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                                                <span className={`w-1.5 h-1.5 rounded-full mr-1.5 ${agent.is_active ? 'bg-green-500' : 'bg-red-500'}`}></span>
+                                                {agent.is_active ? 'Active' : 'Inactive'}
                                             </span>
                                         </td>
                                         <td className="p-4 text-right">
                                             <div className="flex items-center justify-end gap-2">
-                                                <button className="p-2 hover:bg-gray-100 rounded-lg text-gray-500 transition-colors">
-                                                    <Edit2 size={16} />
+                                                <button onClick={() => handleResendPassword(agent.id)} title="Reset & Resend Password" className="p-2 hover:bg-gray-100 rounded-lg text-gray-500 transition-colors">
+                                                    <Mail size={16} />
                                                 </button>
-                                                <button className="p-2 hover:bg-red-50 rounded-lg text-red-500 transition-colors">
+                                                <button onClick={() => handleToggleStatus(agent.id, agent.is_active)} title={agent.is_active ? "Deactivate" : "Activate"} className={`p-2 rounded-lg transition-colors ${agent.is_active ? 'hover:bg-orange-50 text-orange-500' : 'hover:bg-green-50 text-green-500'}`}>
+                                                    <Power size={16} />
+                                                </button>
+                                                <button onClick={() => handleDeleteAgent(agent.id)} title="Delete" className="p-2 hover:bg-red-50 rounded-lg text-red-500 transition-colors">
                                                     <Trash2 size={16} />
-                                                </button>
-                                                <button className="p-2 hover:bg-gray-100 rounded-lg text-gray-500 transition-colors">
-                                                    <MoreVertical size={16} />
                                                 </button>
                                             </div>
                                         </td>
@@ -198,6 +234,30 @@ const Agents: React.FC = () => {
                                     className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:border-brand-orange focus:ring-1 focus:ring-brand-orange"
                                     placeholder="agent@airnetz.com"
                                 />
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
+                                    <input
+                                        type="tel"
+                                        required
+                                        value={newPhone}
+                                        onChange={(e) => setNewPhone(e.target.value)}
+                                        className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:border-brand-orange focus:ring-1 focus:ring-brand-orange"
+                                        placeholder="Mobile Number"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Assigned Location</label>
+                                    <input
+                                        type="text"
+                                        required
+                                        value={newLocation}
+                                        onChange={(e) => setNewLocation(e.target.value)}
+                                        className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:border-brand-orange focus:ring-1 focus:ring-brand-orange"
+                                        placeholder="Service Area"
+                                    />
+                                </div>
                             </div>
                             <div className="pt-4 flex gap-3">
                                 <button

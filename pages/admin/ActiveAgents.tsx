@@ -1,13 +1,42 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { MapPin, Navigation, Phone, Search, Filter } from 'lucide-react';
-
-const MOCK_ACTIVE_AGENTS = [
-    { id: 'AG-001', name: 'John Doe', status: 'En Route', destination: 'Tirupati North', ETA: '5 mins', top: '40%', left: '30%' },
-    { id: 'AG-002', name: 'Sarah Smith', status: 'Working', destination: 'KT Road', ETA: '-', top: '60%', left: '55%' },
-    { id: 'AG-004', name: 'Priya Reddy', status: 'En Route', destination: 'Chandragiri', ETA: '12 mins', top: '75%', left: '20%' },
-];
+import { api } from '../../services/api';
 
 const ActiveAgents: React.FC = () => {
+    const [agents, setAgents] = useState<any[]>([]);
+    const [searchTerm, setSearchTerm] = useState('');
+    const [loading, setLoading] = useState(true);
+
+    const fetchLiveAgents = async () => {
+        try {
+            const data = await api.getLiveAgents();
+            setAgents(data);
+        } catch (error) {
+            console.error('Failed to load live agents', error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchLiveAgents();
+        // Set up polling every 15 seconds to simulate "Live" tracking
+        const interval = setInterval(fetchLiveAgents, 15000);
+        return () => clearInterval(interval);
+    }, []);
+
+    // Deterministic pseudo-random position based on ID for visual map
+    const getMapPosition = (id: number) => {
+        return {
+            top: `${((id * 37) % 70) + 15}%`,
+            left: `${((id * 43) % 75) + 10}%`
+        };
+    };
+
+    const filteredAgents = agents.filter(a => 
+        a.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+        a.destination.toLowerCase().includes(searchTerm.toLowerCase())
+    );
     return (
         <div className="space-y-6 flex flex-col h-[calc(100vh-120px)]">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 shrink-0">
@@ -21,6 +50,8 @@ const ActiveAgents: React.FC = () => {
                         <input
                             type="text"
                             placeholder="Search agent..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
                             className="pl-9 pr-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-orange/20 focus:border-brand-orange"
                         />
                     </div>
@@ -36,15 +67,16 @@ const ActiveAgents: React.FC = () => {
                     <div className="p-4 border-b border-gray-100 bg-gray-50/50">
                         <h3 className="font-semibold text-gray-900 flex items-center justify-between">
                             Active Agents
-                            <span className="bg-green-100 text-green-700 py-0.5 px-2 rounded-full text-xs font-bold">3 Online</span>
+                            <span className="bg-green-100 text-green-700 py-0.5 px-2 rounded-full text-xs font-bold">{agents.length} Online</span>
                         </h3>
                     </div>
                     <div className="flex-1 overflow-y-auto divide-y divide-gray-100">
-                        {MOCK_ACTIVE_AGENTS.map((agent) => (
+                        {loading && <div className="p-4 text-center text-gray-500 text-sm">Loading map data...</div>}
+                        {filteredAgents.map((agent) => (
                             <div key={agent.id} className="p-4 hover:bg-gray-50 cursor-pointer transition-colors group border-l-4 border-transparent hover:border-brand-orange">
                                 <div className="flex justify-between items-start mb-2">
                                     <p className="font-semibold text-gray-900">{agent.name}</p>
-                                    <span className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded-sm ${agent.status === 'En Route' ? 'bg-blue-100 text-blue-700' : 'bg-orange-100 text-orange-700'
+                                    <span className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded-sm ${agent.status === 'Working' ? 'bg-blue-100 text-blue-700' : 'bg-green-100 text-green-700'
                                         }`}>
                                         {agent.status}
                                     </span>
@@ -52,10 +84,13 @@ const ActiveAgents: React.FC = () => {
                                 <div className="flex items-center gap-2 text-xs text-gray-500 mb-2">
                                     <MapPin size={12} /> <span className="truncate">{agent.destination}</span>
                                 </div>
-                                {agent.status === 'En Route' && (
+                                <div className="flex items-center gap-2 text-xs text-gray-500 mb-2">
+                                    <Phone size={12} /> <span>{agent.phone || 'No phone'}</span>
+                                </div>
+                                {agent.status === 'Working' && agent.task && (
                                     <div className="flex justify-between items-center text-xs mt-3 pt-3 border-t border-gray-100">
-                                        <span className="text-gray-500">ETA</span>
-                                        <span className="font-semibold text-gray-900">{agent.ETA}</span>
+                                        <span className="text-gray-500">Current Task</span>
+                                        <span className="font-semibold text-gray-900 truncate max-w-[120px]">{agent.task}</span>
                                     </div>
                                 )}
                             </div>
@@ -68,13 +103,15 @@ const ActiveAgents: React.FC = () => {
                     <div className="absolute inset-0 opacity-[0.15] bg-[radial-gradient(#000_1px,transparent_1px)] [background-size:24px_24px]"></div>
 
                     {/* Agent Map Markers */}
-                    {MOCK_ACTIVE_AGENTS.map((agent) => (
+                    {filteredAgents.map((agent) => {
+                        const pos = getMapPosition(agent.id);
+                        return (
                         <div
                             key={agent.id}
                             className="absolute z-10 group cursor-pointer"
-                            style={{ top: agent.top, left: agent.left, transform: 'translate(-50%, -50%)' }}
+                            style={{ top: pos.top, left: pos.left, transform: 'translate(-50%, -50%)' }}
                         >
-                            {agent.status === 'En Route' ? (
+                            {agent.status === 'Working' ? (
                                 <div className="relative flex items-center justify-center">
                                     <div className="w-8 h-8 rounded-full bg-blue-500/20 absolute animate-ping"></div>
                                     <div className="w-8 h-8 bg-blue-500 border-2 border-white shadow-md rounded-full flex items-center justify-center text-white relative z-10">
@@ -96,7 +133,7 @@ const ActiveAgents: React.FC = () => {
                                 <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-white border-t border-l border-gray-100 rotate-45"></div>
                             </div>
                         </div>
-                    ))}
+                    )})}
 
                 </div>
             </div>

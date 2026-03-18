@@ -1,12 +1,6 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { CreditCard, DollarSign, ArrowUpRight, ArrowDownRight, Download, Filter } from 'lucide-react';
-
-const MOCK_PAYMENTS = [
-    { id: 'PAY-1001', date: '27 Feb 2026', customer: 'Ramesh Naidu', amount: '₹1,500', agent: 'John Doe', commission: '₹150', status: 'Completed' },
-    { id: 'PAY-1002', date: '26 Feb 2026', customer: 'Venkata Subbaiah', amount: '₹500', agent: 'Sarah Smith', commission: '₹50', status: 'Completed' },
-    { id: 'PAY-1003', date: '26 Feb 2026', customer: 'Lakshmi Narayana', amount: '₹2,000', agent: 'Priya Reddy', commission: '₹200', status: 'Pending' },
-    { id: 'PAY-1004', date: '25 Feb 2026', customer: 'Srinivasa Rao', amount: '₹800', agent: 'John Doe', commission: '₹80', status: 'Completed' },
-];
+import { api } from '../../services/api';
 
 const StatCard = ({ title, amount, subtext, icon: Icon, color }: any) => (
     <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm">
@@ -24,6 +18,29 @@ const StatCard = ({ title, amount, subtext, icon: Icon, color }: any) => (
 );
 
 const Payments: React.FC = () => {
+    const [payments, setPayments] = useState<any[]>([]);
+    const [stats, setStats] = useState({ totalRevenue: '₹0', pendingAmount: '₹0', totalCommissions: '₹0' });
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const loadData = async () => {
+            try {
+                const data = await api.getAdminPayments();
+                setPayments(data.transactions);
+                setStats(data.stats);
+            } catch (err) {
+                console.error("Failed to load payments", err);
+            } finally {
+                setLoading(false);
+            }
+        };
+        loadData();
+    }, []);
+
+    if (loading) {
+        return <div className="p-12 text-center text-gray-500 animate-pulse">Loading Payments...</div>;
+    }
+
     return (
         <div className="space-y-6">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -42,9 +59,9 @@ const Payments: React.FC = () => {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <StatCard title="Total Revenue (Month)" amount="₹45,200" subtext="+18% from last month" icon={CreditCard} color="bg-blue-500" />
-                <StatCard title="Pending Payments" amount="₹4,500" subtext="12 invoices awaiting payment" icon={DollarSign} color="bg-orange-500" />
-                <StatCard title="Agent Commissions" amount="₹4,520" subtext="To be paid out this week" icon={ArrowUpRight} color="bg-green-500" />
+                <StatCard title="Total Revenue" amount={stats.totalRevenue} subtext="Successfully collected" icon={CreditCard} color="bg-blue-500" />
+                <StatCard title="Pending Payments" amount={stats.pendingAmount} subtext="Awaiting collection" icon={DollarSign} color="bg-orange-500" />
+                <StatCard title="Agent Commissions" amount={stats.totalCommissions} subtext="Total commissions generated" icon={ArrowUpRight} color="bg-green-500" />
             </div>
 
             <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
@@ -65,7 +82,7 @@ const Payments: React.FC = () => {
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-100">
-                            {MOCK_PAYMENTS.map((payment) => (
+                            {payments.length > 0 ? payments.map((payment) => (
                                 <tr key={payment.id} className="hover:bg-gray-50/50 transition-colors">
                                     <td className="p-4 text-sm font-medium text-gray-900">{payment.id}</td>
                                     <td className="p-4 text-sm text-gray-500">{payment.date}</td>
@@ -80,7 +97,11 @@ const Payments: React.FC = () => {
                                         </span>
                                     </td>
                                 </tr>
-                            ))}
+                            )) : (
+                                <tr>
+                                    <td colSpan={7} className="p-8 text-center text-gray-500">No payment records found</td>
+                                </tr>
+                            )}
                         </tbody>
                     </table>
                 </div>

@@ -1,25 +1,85 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Plus, MoreVertical, Edit2, Trash2 } from 'lucide-react';
+import { Search, Plus, MoreVertical, Edit2, Trash2, X } from 'lucide-react';
 import { api } from '../../services/api';
 
 const Customers: React.FC = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [customers, setCustomers] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
+    const [plans, setPlans] = useState<any[]>([]);
+
+    // Modal state
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [newName, setNewName] = useState('');
+    const [newEmail, setNewEmail] = useState('');
+    const [newPhone, setNewPhone] = useState('');
+    const [newAddress, setNewAddress] = useState('');
+    const [newPlanId, setNewPlanId] = useState('');
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [error, setError] = useState('');
+    const [successMsg, setSuccessMsg] = useState('');
+
+    const fetchCustomers = async () => {
+        try {
+            const data = await api.getAdminCustomers();
+            setCustomers(data);
+        } catch (err) {
+            console.error('Failed to fetch customers', err);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const fetchPlans = async () => {
+        try {
+            const p = await api.getPlans();
+            setPlans(p);
+        } catch (err) {
+            console.error('Failed to fetch plans', err);
+        }
+    };
 
     useEffect(() => {
-        const fetchCustomers = async () => {
-            try {
-                const data = await api.getAdminCustomers();
-                setCustomers(data);
-            } catch (err) {
-                console.error('Failed to fetch customers', err);
-            } finally {
-                setLoading(false);
-            }
-        };
         fetchCustomers();
+        fetchPlans();
     }, []);
+
+    const handleAddCustomer = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setError('');
+        setSuccessMsg('');
+        setIsSubmitting(true);
+
+        try {
+            const data = {
+                name: newName,
+                email: newEmail,
+                phone: newPhone,
+                address: newAddress,
+                plan_id: newPlanId ? parseInt(newPlanId) : null
+            };
+            const res = await api.createAdminCustomer(data);
+            if (res.error) {
+                 setError(res.error);
+            } else if (res.success) {
+                setSuccessMsg(res.message + (res.initialPassword ? ` Temp Password: ${res.initialPassword}` : ''));
+                setNewName('');
+                setNewEmail('');
+                setNewPhone('');
+                setNewAddress('');
+                setNewPlanId('');
+                fetchCustomers(); // Refresh list
+                setTimeout(() => {
+                    setIsModalOpen(false);
+                    setSuccessMsg('');
+                }, 4000);
+            }
+        } catch (err: any) {
+            setError(err.message || 'Failed to onboard customer');
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
 
     const filteredCustomers = customers.filter(customer => 
         customer.customer_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -43,7 +103,7 @@ const Customers: React.FC = () => {
                     <p className="text-gray-500 text-sm mt-1">Manage all registered customers and their service history</p>
                 </div>
                 <button 
-                  onClick={() => alert('Please use the Leads tab to onboard new customers from received inquiries.')}
+                  onClick={() => setIsModalOpen(true)}
                   className="bg-brand-orange text-white px-4 py-2 rounded-lg hover:bg-orange-600 transition-colors flex items-center justify-center gap-2">
                     <Plus size={20} />
                     <span>Add New Customer</span>
@@ -126,6 +186,111 @@ const Customers: React.FC = () => {
                     </table>
                 </div>
             </div>
+
+            {/* Add Customer Modal */}
+            {isModalOpen && (
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 overflow-y-auto">
+                    <div className="bg-white rounded-xl w-full max-w-2xl shadow-xl overflow-hidden my-8">
+                        <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+                            <h2 className="text-xl font-bold text-gray-900">Manual Customer Onboarding</h2>
+                            <button onClick={() => setIsModalOpen(false)} className="text-gray-400 hover:text-gray-600 transition-colors">
+                                <X size={24} />
+                            </button>
+                        </div>
+                        <form onSubmit={handleAddCustomer} className="p-6 space-y-4">
+                            {error && (
+                                <div className="p-3 bg-red-50 text-red-600 text-sm rounded-lg border border-red-100">
+                                    {error}
+                                </div>
+                            )}
+                            {successMsg && (
+                                <div className="p-3 bg-green-50 text-green-700 text-sm rounded-lg border border-green-100">
+                                    {successMsg}
+                                </div>
+                            )}
+                            
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+                                    <input
+                                        type="text"
+                                        required
+                                        value={newName}
+                                        onChange={(e) => setNewName(e.target.value)}
+                                        className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:border-brand-orange focus:ring-1 focus:ring-brand-orange"
+                                        placeholder="e.g. John Doe"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
+                                    <input
+                                        type="email"
+                                        required
+                                        value={newEmail}
+                                        onChange={(e) => setNewEmail(e.target.value)}
+                                        className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:border-brand-orange focus:ring-1 focus:ring-brand-orange"
+                                        placeholder="johndoe@example.com"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
+                                    <input
+                                        type="tel"
+                                        required
+                                        value={newPhone}
+                                        onChange={(e) => setNewPhone(e.target.value)}
+                                        className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:border-brand-orange focus:ring-1 focus:ring-brand-orange"
+                                        placeholder="Mobile Number"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Assign Plan (Optional)</label>
+                                    <select
+                                        value={newPlanId}
+                                        onChange={(e) => setNewPlanId(e.target.value)}
+                                        className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:border-brand-orange focus:ring-1 focus:ring-brand-orange bg-white"
+                                    >
+                                        <option value="">Select a Plan</option>
+                                        {plans.map(p => (
+                                            <option key={p.id} value={p.id}>
+                                                {p.name} (₹{p.price})
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+                                <div className="md:col-span-2">
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Installation Address</label>
+                                    <textarea
+                                        required
+                                        rows={3}
+                                        value={newAddress}
+                                        onChange={(e) => setNewAddress(e.target.value)}
+                                        className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:border-brand-orange focus:ring-1 focus:ring-brand-orange"
+                                        placeholder="Full address for service installation"
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="pt-4 flex gap-3">
+                                <button
+                                    type="button"
+                                    onClick={() => setIsModalOpen(false)}
+                                    className="flex-1 px-4 py-2 border border-gray-200 text-gray-600 rounded-lg hover:bg-gray-50 transition-colors font-medium"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    type="submit"
+                                    disabled={isSubmitting}
+                                    className="flex-1 px-4 py-2 bg-brand-orange text-white rounded-lg hover:bg-orange-600 transition-colors font-medium disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center"
+                                >
+                                    {isSubmitting ? 'Onboarding...' : 'Onboard Customer'}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
