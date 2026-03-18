@@ -1,15 +1,38 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Search, Plus, MoreVertical, Edit2, Trash2 } from 'lucide-react';
-
-const MOCK_AGENTS = [
-    { id: 'AG-001', name: 'John Doe', phone: '+91 9876543210', area: 'Tirupati North', status: 'Active', tasks: 3 },
-    { id: 'AG-002', name: 'Sarah Smith', phone: '+91 8765432109', area: 'Tirupati South', status: 'Busy', tasks: 5 },
-    { id: 'AG-003', name: 'Ravi Kumar', phone: '+91 7654321098', area: 'Renigunta', status: 'Offline', tasks: 0 },
-    { id: 'AG-004', name: 'Priya Reddy', phone: '+91 6543210987', area: 'Chandragiri', status: 'Active', tasks: 1 },
-];
+import { api } from '../../services/api';
 
 const Agents: React.FC = () => {
     const [searchTerm, setSearchTerm] = useState('');
+    const [agents, setAgents] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchAgents = async () => {
+            try {
+                const data = await api.getAgents();
+                setAgents(data);
+            } catch (err) {
+                console.error('Failed to fetch agents', err);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchAgents();
+    }, []);
+
+    const filteredAgents = agents.filter(agent => 
+        agent.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        agent.email.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
+    if (loading) {
+        return (
+            <div className="flex items-center justify-center min-h-[400px]">
+                <div className="w-12 h-12 border-4 border-primary-600 border-t-transparent rounded-full animate-spin"></div>
+            </div>
+        );
+    }
 
     return (
         <div className="space-y-6">
@@ -30,19 +53,11 @@ const Agents: React.FC = () => {
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
                         <input
                             type="text"
-                            placeholder="Search agents by name, ID or area..."
+                            placeholder="Search agents by name or email..."
                             className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-orange/20 focus:border-brand-orange"
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                         />
-                    </div>
-                    <div className="flex gap-2">
-                        <select className="px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:border-brand-orange bg-white text-gray-600">
-                            <option value="all">All Status</option>
-                            <option value="active">Active</option>
-                            <option value="busy">Busy</option>
-                            <option value="offline">Offline</option>
-                        </select>
                     </div>
                 </div>
 
@@ -51,67 +66,55 @@ const Agents: React.FC = () => {
                         <thead>
                             <tr className="bg-gray-50/50 text-gray-500 text-sm border-b border-gray-100">
                                 <th className="p-4 font-medium">Agent Details</th>
-                                <th className="p-4 font-medium">Contact</th>
-                                <th className="p-4 font-medium">Service Area</th>
+                                <th className="p-4 font-medium">Email</th>
                                 <th className="p-4 font-medium">Status</th>
-                                <th className="p-4 font-medium">Active Tasks</th>
                                 <th className="p-4 font-medium text-right">Actions</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-100">
-                            {MOCK_AGENTS.map((agent) => (
-                                <tr key={agent.id} className="hover:bg-gray-50/50 transition-colors">
-                                    <td className="p-4">
-                                        <div className="flex items-center gap-3">
-                                            <div className="w-10 h-10 rounded-full bg-brand-orange/10 text-brand-orange flex items-center justify-center font-bold">
-                                                {agent.name.split(' ').map(n => n[0]).join('')}
+                            {filteredAgents.length > 0 ? (
+                                filteredAgents.map((agent) => (
+                                    <tr key={agent.id} className="hover:bg-gray-50/50 transition-colors">
+                                        <td className="p-4">
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-10 h-10 rounded-full bg-brand-orange/10 text-brand-orange flex items-center justify-center font-bold">
+                                                    {agent.name.split(' ').map((n: string) => n[0]).join('')}
+                                                </div>
+                                                <div>
+                                                    <p className="font-medium text-gray-900">{agent.name}</p>
+                                                    <p className="text-xs text-gray-500">ID: {agent.id}</p>
+                                                </div>
                                             </div>
-                                            <div>
-                                                <p className="font-medium text-gray-900">{agent.name}</p>
-                                                <p className="text-xs text-gray-500">{agent.id}</p>
+                                        </td>
+                                        <td className="p-4 text-sm text-gray-600">{agent.email}</td>
+                                        <td className="p-4">
+                                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700`}>
+                                                <span className={`w-1.5 h-1.5 rounded-full mr-1.5 bg-green-500`}></span>
+                                                Active
+                                            </span>
+                                        </td>
+                                        <td className="p-4 text-right">
+                                            <div className="flex items-center justify-end gap-2">
+                                                <button className="p-2 hover:bg-gray-100 rounded-lg text-gray-500 transition-colors">
+                                                    <Edit2 size={16} />
+                                                </button>
+                                                <button className="p-2 hover:bg-red-50 rounded-lg text-red-500 transition-colors">
+                                                    <Trash2 size={16} />
+                                                </button>
+                                                <button className="p-2 hover:bg-gray-100 rounded-lg text-gray-500 transition-colors">
+                                                    <MoreVertical size={16} />
+                                                </button>
                                             </div>
-                                        </div>
-                                    </td>
-                                    <td className="p-4 text-sm text-gray-600">{agent.phone}</td>
-                                    <td className="p-4 text-sm text-gray-600">{agent.area}</td>
-                                    <td className="p-4">
-                                        <span className={`inline - flex items - center px - 2.5 py - 0.5 rounded - full text - xs font - medium ${agent.status === 'Active' ? 'bg-green-100 text-green-700' :
-                                            agent.status === 'Busy' ? 'bg-orange-100 text-orange-700' :
-                                                'bg-gray-100 text-gray-700'
-                                            } `}>
-                                            <span className={`w - 1.5 h - 1.5 rounded - full mr - 1.5 ${agent.status === 'Active' ? 'bg-green-500' :
-                                                agent.status === 'Busy' ? 'bg-orange-500' :
-                                                    'bg-gray-500'
-                                                } `}></span>
-                                            {agent.status}
-                                        </span>
-                                    </td>
-                                    <td className="p-4 text-sm font-medium text-gray-900">{agent.tasks}</td>
-                                    <td className="p-4 text-right">
-                                        <div className="flex items-center justify-end gap-2">
-                                            <button className="p-2 hover:bg-gray-100 rounded-lg text-gray-500 transition-colors">
-                                                <Edit2 size={16} />
-                                            </button>
-                                            <button className="p-2 hover:bg-red-50 rounded-lg text-red-500 transition-colors">
-                                                <Trash2 size={16} />
-                                            </button>
-                                            <button className="p-2 hover:bg-gray-100 rounded-lg text-gray-500 transition-colors">
-                                                <MoreVertical size={16} />
-                                            </button>
-                                        </div>
-                                    </td>
+                                        </td>
+                                    </tr>
+                                ))
+                            ) : (
+                                <tr>
+                                    <td colSpan={4} className="p-8 text-center text-gray-400">No agents found</td>
                                 </tr>
-                            ))}
+                            )}
                         </tbody>
                     </table>
-                </div>
-                <div className="p-4 border-t border-gray-100 flex items-center justify-between text-sm text-gray-500">
-                    <p>Showing 4 of 4 agents</p>
-                    <div className="flex gap-1">
-                        <button className="px-3 py-1 rounded border border-gray-200 hover:bg-gray-50 disabled:opacity-50">Prev</button>
-                        <button className="px-3 py-1 rounded bg-brand-orange text-white">1</button>
-                        <button className="px-3 py-1 rounded border border-gray-200 hover:bg-gray-50 disabled:opacity-50">Next</button>
-                    </div>
                 </div>
             </div>
         </div>

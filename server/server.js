@@ -132,6 +132,22 @@ app.get('/api/admin/agents', async (req, res) => {
   }
 });
 
+// Get all customers
+app.get('/api/admin/customers', async (req, res) => {
+  try {
+    const [rows] = await pool.query(`
+      SELECT c.*, u.name as customer_name, u.email as customer_email, p.name as plan_name 
+      FROM customers c
+      JOIN users u ON c.user_id = u.id
+      LEFT JOIN plans p ON c.plan_id = p.id
+      ORDER BY c.id DESC
+    `);
+    res.json(rows);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
 // Assign technician
 app.post('/api/admin/assign', async (req, res) => {
   const { requestId, agentId } = req.body;

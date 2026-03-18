@@ -1,15 +1,39 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Search, Plus, MoreVertical, Edit2, Trash2 } from 'lucide-react';
-
-const MOCK_CUSTOMERS = [
-    { id: 'CUS-1001', name: 'Ramesh Naidu', phone: '+91 9123456780', area: 'Mangalam', service: 'Broadband Details', joined: '12 Jan 2026', status: 'Active' },
-    { id: 'CUS-1002', name: 'Lakshmi Narayana', phone: '+91 8123456789', area: 'KT Road', service: 'DTH Repair', joined: '05 Feb 2026', status: 'Pending' },
-    { id: 'CUS-1003', name: 'Venkata Subbaiah', phone: '+91 7123456789', area: 'Alipiri', service: 'New Broadband', joined: '15 Feb 2026', status: 'Active' },
-    { id: 'CUS-1004', name: 'Srinivasa Rao', phone: '+91 6123456789', area: 'Bhavani Nagar', service: 'DTH Installation', joined: '20 Feb 2026', status: 'Inactive' },
-];
+import { api } from '../../services/api';
 
 const Customers: React.FC = () => {
     const [searchTerm, setSearchTerm] = useState('');
+    const [customers, setCustomers] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchCustomers = async () => {
+            try {
+                const data = await api.getAdminCustomers();
+                setCustomers(data);
+            } catch (err) {
+                console.error('Failed to fetch customers', err);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchCustomers();
+    }, []);
+
+    const filteredCustomers = customers.filter(customer => 
+        customer.customer_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        customer.phone.includes(searchTerm) ||
+        customer.id.toString().includes(searchTerm)
+    );
+
+    if (loading) {
+        return (
+            <div className="flex items-center justify-center min-h-[400px]">
+                <div className="w-12 h-12 border-4 border-primary-600 border-t-transparent rounded-full animate-spin"></div>
+            </div>
+        );
+    }
 
     return (
         <div className="space-y-6">
@@ -36,19 +60,6 @@ const Customers: React.FC = () => {
                             onChange={(e) => setSearchTerm(e.target.value)}
                         />
                     </div>
-                    <div className="flex gap-2">
-                        <select className="px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:border-brand-orange bg-white text-gray-600">
-                            <option value="all">All Services</option>
-                            <option value="broadband">Broadband</option>
-                            <option value="dth">DTH</option>
-                        </select>
-                        <select className="px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:border-brand-orange bg-white text-gray-600">
-                            <option value="all">All Status</option>
-                            <option value="active">Active</option>
-                            <option value="pending">Pending</option>
-                            <option value="inactive">Inactive</option>
-                        </select>
-                    </div>
                 </div>
 
                 <div className="overflow-x-auto">
@@ -58,61 +69,59 @@ const Customers: React.FC = () => {
                                 <th className="p-4 font-medium">Customer Details</th>
                                 <th className="p-4 font-medium">Contact</th>
                                 <th className="p-4 font-medium">Location</th>
-                                <th className="p-4 font-medium">Primary Service</th>
+                                <th className="p-4 font-medium">Plan</th>
                                 <th className="p-4 font-medium">Status</th>
                                 <th className="p-4 font-medium text-right">Actions</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-100">
-                            {MOCK_CUSTOMERS.map((customer) => (
-                                <tr key={customer.id} className="hover:bg-gray-50/50 transition-colors">
-                                    <td className="p-4">
-                                        <div className="flex items-center gap-3">
-                                            <div className="w-10 h-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold">
-                                                {customer.name.split(' ').map(n => n[0]).join('')}
+                            {filteredCustomers.length > 0 ? (
+                                filteredCustomers.map((customer) => (
+                                    <tr key={customer.id} className="hover:bg-gray-50/50 transition-colors">
+                                        <td className="p-4">
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-10 h-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold">
+                                                    {customer.customer_name.split(' ').map((n: string) => n[0]).join('')}
+                                                </div>
+                                                <div>
+                                                    <p className="font-medium text-gray-900">{customer.customer_name}</p>
+                                                    <p className="text-xs text-gray-500">CUS-{customer.id} • Joined {new Date(customer.created_at).toLocaleDateString()}</p>
+                                                </div>
                                             </div>
-                                            <div>
-                                                <p className="font-medium text-gray-900">{customer.name}</p>
-                                                <p className="text-xs text-gray-500">{customer.id} • Joined {customer.joined}</p>
+                                        </td>
+                                        <td className="p-4 text-sm text-gray-600">{customer.phone}</td>
+                                        <td className="p-4 text-sm text-gray-600">{customer.address}</td>
+                                        <td className="p-4 text-sm text-gray-900 font-medium">{customer.plan_name || 'No Plan'}</td>
+                                        <td className="p-4">
+                                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${customer.status === 'active' ? 'bg-green-100 text-green-700' :
+                                                    customer.status === 'pending' ? 'bg-yellow-100 text-yellow-700' :
+                                                        'bg-gray-100 text-gray-700'
+                                                }`}>
+                                                {customer.status}
+                                            </span>
+                                        </td>
+                                        <td className="p-4 text-right">
+                                            <div className="flex items-center justify-end gap-2">
+                                                <button className="p-2 hover:bg-gray-100 rounded-lg text-gray-500 transition-colors">
+                                                    <Edit2 size={16} />
+                                                </button>
+                                                <button className="p-2 hover:bg-red-50 rounded-lg text-red-500 transition-colors">
+                                                    <Trash2 size={16} />
+                                                </button>
+                                                <button className="p-2 hover:bg-gray-100 rounded-lg text-gray-500 transition-colors">
+                                                    <MoreVertical size={16} />
+                                                </button>
                                             </div>
-                                        </div>
-                                    </td>
-                                    <td className="p-4 text-sm text-gray-600">{customer.phone}</td>
-                                    <td className="p-4 text-sm text-gray-600">{customer.area}</td>
-                                    <td className="p-4 text-sm text-gray-900 font-medium">{customer.service}</td>
-                                    <td className="p-4">
-                                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${customer.status === 'Active' ? 'bg-green-100 text-green-700' :
-                                                customer.status === 'Pending' ? 'bg-yellow-100 text-yellow-700' :
-                                                    'bg-gray-100 text-gray-700'
-                                            }`}>
-                                            {customer.status}
-                                        </span>
-                                    </td>
-                                    <td className="p-4 text-right">
-                                        <div className="flex items-center justify-end gap-2">
-                                            <button className="p-2 hover:bg-gray-100 rounded-lg text-gray-500 transition-colors">
-                                                <Edit2 size={16} />
-                                            </button>
-                                            <button className="p-2 hover:bg-red-50 rounded-lg text-red-500 transition-colors">
-                                                <Trash2 size={16} />
-                                            </button>
-                                            <button className="p-2 hover:bg-gray-100 rounded-lg text-gray-500 transition-colors">
-                                                <MoreVertical size={16} />
-                                            </button>
-                                        </div>
-                                    </td>
+                                        </td>
+                                    </tr>
+                                ))
+                            ) : (
+                                <tr>
+                                    <td colSpan={6} className="p-8 text-center text-gray-400">No customers found</td>
                                 </tr>
-                            ))}
+                            )}
                         </tbody>
                     </table>
-                </div>
-                <div className="p-4 border-t border-gray-100 flex items-center justify-between text-sm text-gray-500">
-                    <p>Showing 4 of 4 customers</p>
-                    <div className="flex gap-1">
-                        <button className="px-3 py-1 rounded border border-gray-200 hover:bg-gray-50 disabled:opacity-50">Prev</button>
-                        <button className="px-3 py-1 rounded bg-brand-orange text-white">1</button>
-                        <button className="px-3 py-1 rounded border border-gray-200 hover:bg-gray-50 disabled:opacity-50">Next</button>
-                    </div>
                 </div>
             </div>
         </div>

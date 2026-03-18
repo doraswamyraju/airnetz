@@ -47,6 +47,11 @@ export const api = {
     return res.json();
   },
 
+  getAdminCustomers: async () => {
+    const res = await fetch(`${API_BASE}/admin/customers`);
+    return res.json();
+  },
+
   getAgents: async () => {
     const res = await fetch(`${API_BASE}/admin/agents`);
     return res.json();
