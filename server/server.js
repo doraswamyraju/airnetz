@@ -132,6 +132,25 @@ app.get('/api/admin/agents', async (req, res) => {
   }
 });
 
+// Create new agent
+app.post('/api/admin/agents', async (req, res) => {
+  const { name, email } = req.body;
+  try {
+    const defaultPassword = 'agent' + Math.floor(100 + Math.random() * 900);
+    const [result] = await pool.query(
+      'INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, ?)',
+      [name, email, defaultPassword, 'agent']
+    );
+    res.json({ success: true, id: result.insertId, name, email, defaultPassword });
+  } catch (error) {
+    if (error.code === 'ER_DUP_ENTRY') {
+      res.status(400).json({ message: 'Email already exists' });
+    } else {
+      res.status(500).json({ message: error.message });
+    }
+  }
+});
+
 // Get all customers
 app.get('/api/admin/customers', async (req, res) => {
   try {
@@ -312,51 +331,60 @@ app.post('/api/leads/convert', async (req, res) => {
     if (leads.length === 0) return res.status(404).json({ error: 'Lead not found' });
     const lead = leads[0];
 
-    // 2. Create User Account
+    // 2. Create User Account (Ignore if exists)
     const initialPassword = 'pass' + Math.floor(1000 + Math.random() * 9000);
-    const userSql = 'INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, ?)';
-    
+    const userSql = 'INSERT IGNORE INTO users (name, email, password, role) VALUES (?, ?, ?, ?)';
     const [userResult] = await pool.query(userSql, [lead.name, lead.email, initialPassword, 'customer']);
-    const userId = userResult.insertId;
+    
+    let isNewUser = false;
+    if (userResult.insertId) {
+      const userId = userResult.insertId;
+      isNewUser = true;
 
-    // 3. Create Customer Profile
-    const customerSql = 'INSERT INTO customers (user_id, address, phone, status) VALUES (?, ?, ?, ?)';
-    await pool.query(customerSql, [userId, lead.address, lead.phone, 'active']);
+      // 3. Create Customer Profile
+      const customerSql = 'INSERT INTO customers (user_id, address, phone, status) VALUES (?, ?, ?, ?)';
+      await pool.query(customerSql, [userId, lead.address, lead.phone, 'active']);
+    }
 
     // 4. Update Lead Status
     await pool.query('UPDATE leads SET status = ? WHERE id = ?', ['Converted', leadId]);
           
-    // 5. Send Welcome Email
-    const mailOptions = {
-      from: `"Airnetz Support" <${process.env.EMAIL_USER}>`,
-      to: lead.email,
-      subject: 'Welcome to Airnetz - Your Account is Ready!',
-      html: `
-        <div style="font-family: sans-serif; color: #333; max-width: 600px; margin: auto;">
-          <h2 style="color: #f97316;">Welcome to Airnetz!</h2>
-          <p>Hello ${lead.name},</p>
-          <p>Your high-speed internet connection request has been approved. We have created your customer portal account.</p>
-          <div style="background: #f3f4f6; padding: 20px; border-radius: 10px; margin: 20px 0;">
-            <p style="margin: 0; font-weight: bold;">Your Login Credentials:</p>
-            <p><strong>Email:</strong> ${lead.email}</p>
-            <p><strong>Password:</strong> ${initialPassword}</p>
+    // 5. Send Welcome Email ONLY if its a newly created user
+    if (isNewUser) {
+      const mailOptions = {
+        from: `"Airnetz Support" <${process.env.EMAIL_USER}>`,
+        to: lead.email,
+        subject: 'Welcome to Airnetz - Your Account is Ready!',
+        html: `
+          <div style="font-family: sans-serif; color: #333; max-width: 600px; margin: auto;">
+            <h2 style="color: #f97316;">Welcome to Airnetz!</h2>
+            <p>Hello ${lead.name},</p>
+            <p>Your high-speed internet connection request has been approved. We have created your customer portal account.</p>
+            <div style="background: #f3f4f6; padding: 20px; border-radius: 10px; margin: 20px 0;">
+              <p style="margin: 0; font-weight: bold;">Your Login Credentials:</p>
+              <p><strong>Email:</strong> ${lead.email}</p>
+              <p><strong>Password:</strong> ${initialPassword}</p>
+            </div>
+            <p>You can login at: <a href="http://airnetz.sriddha.com/login" style="color: #f97316; font-weight: bold;">airnetz.sriddha.com/login</a></p>
+            <p>Please change your password after logging in for the first time.</p>
+            <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 30px 0;">
+            <p style="font-size: 12px; color: #9ca3af;">Airnetz Tirupati - High Speed Fiber Broadband</p>
           </div>
-          <p>You can login at: <a href="http://airnetz.sriddha.com/login" style="color: #f97316; font-weight: bold;">airnetz.sriddha.com/login</a></p>
-          <p>Please change your password after logging in for the first time.</p>
-          <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 30px 0;">
-          <p style="font-size: 12px; color: #9ca3af;">Airnetz Tirupati - High Speed Fiber Broadband</p>
-        </div>
-      `
-    };
+        `
+      };
 
-    console.log(`Attempting to send welcome email to ${lead.email}...`);
-    try {
-      await transporter.sendMail(mailOptions);
-      console.log('Email sent successfully');
-      res.json({ success: true, message: 'Customer onboarded and email sent' });
-    } catch (emailError) {
-      console.error('Email failed but account created:', emailError);
-      res.json({ success: true, warning: 'Account created but email failed: ' + emailError.message });
+      console.log(`Attempting to send welcome email to ${lead.email}...`);
+      try {
+        await transporter.sendMail(mailOptions);
+        console.log('Email sent successfully');
+        return res.json({ success: true, message: 'Customer onboarded and email sent' });
+      } catch (emailError) {
+        console.error('Email failed but account created:', emailError);
+        return res.json({ success: true, warning: 'Account created but email failed: ' + emailError.message });
+      }
+    } else {
+      // User already existed (likely from instant booking flow)
+      return res.json({ success: true, message: 'Lead marked as converted. Customer account already exists.' });
     }
   } catch (err) {
     console.error('Onboarding conversion error:', err);

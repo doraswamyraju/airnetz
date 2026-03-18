@@ -57,6 +57,15 @@ export const api = {
     return res.json();
   },
 
+  createAgent: async (agentData: any) => {
+    const res = await fetch(`${API_BASE}/admin/agents`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(agentData)
+    });
+    return res.json();
+  },
+
   assignTechnician: async (requestId: string, agentId: number) => {
     const res = await fetch(`${API_BASE}/admin/assign`, {
       method: 'POST',

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Plus, MoreVertical, Edit2, Trash2 } from 'lucide-react';
+import { Search, Plus, MoreVertical, Edit2, Trash2, X } from 'lucide-react';
 import { api } from '../../services/api';
 
 const Agents: React.FC = () => {
@@ -7,19 +7,55 @@ const Agents: React.FC = () => {
     const [agents, setAgents] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
 
+    // Modal state
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [newName, setNewName] = useState('');
+    const [newEmail, setNewEmail] = useState('');
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [error, setError] = useState('');
+    const [successMsg, setSuccessMsg] = useState('');
+
+    const fetchAgents = async () => {
+        try {
+            const data = await api.getAgents();
+            setAgents(data);
+        } catch (err) {
+            console.error('Failed to fetch agents', err);
+        } finally {
+            setLoading(false);
+        }
+    };
+
     useEffect(() => {
-        const fetchAgents = async () => {
-            try {
-                const data = await api.getAgents();
-                setAgents(data);
-            } catch (err) {
-                console.error('Failed to fetch agents', err);
-            } finally {
-                setLoading(false);
-            }
-        };
         fetchAgents();
     }, []);
+
+    const handleAddAgent = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setError('');
+        setSuccessMsg('');
+        setIsSubmitting(true);
+
+        try {
+            const res = await api.createAgent({ name: newName, email: newEmail });
+            if (res.error || res.message) {
+                 setError(res.error || res.message);
+            } else if (res.success) {
+                setSuccessMsg(`Agent created successfully! Temp Password: ${res.defaultPassword}`);
+                setNewName('');
+                setNewEmail('');
+                fetchAgents(); // Refresh list
+                setTimeout(() => {
+                    setIsModalOpen(false);
+                    setSuccessMsg('');
+                }, 4000);
+            }
+        } catch (err: any) {
+            setError(err.message || 'Failed to create agent');
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
 
     const filteredAgents = agents.filter(agent => 
         agent.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -41,7 +77,9 @@ const Agents: React.FC = () => {
                     <h1 className="text-2xl font-bold text-gray-900">Agents Management</h1>
                     <p className="text-gray-500 text-sm mt-1">Manage all service agents and their assignments</p>
                 </div>
-                <button className="bg-brand-orange text-white px-4 py-2 rounded-lg hover:bg-orange-600 transition-colors flex items-center justify-center gap-2">
+                <button 
+                  onClick={() => setIsModalOpen(true)}
+                  className="bg-brand-orange text-white px-4 py-2 rounded-lg hover:bg-orange-600 transition-colors flex items-center justify-center gap-2">
                     <Plus size={20} />
                     <span>Add New Agent</span>
                 </button>
@@ -117,6 +155,70 @@ const Agents: React.FC = () => {
                     </table>
                 </div>
             </div>
+
+            {/* Add Agent Modal */}
+            {isModalOpen && (
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-xl w-full max-w-md shadow-xl overflow-hidden">
+                        <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+                            <h2 className="text-xl font-bold text-gray-900">Add New Agent</h2>
+                            <button onClick={() => setIsModalOpen(false)} className="text-gray-400 hover:text-gray-600 transition-colors">
+                                <X size={24} />
+                            </button>
+                        </div>
+                        <form onSubmit={handleAddAgent} className="p-6 space-y-4">
+                            {error && (
+                                <div className="p-3 bg-red-50 text-red-600 text-sm rounded-lg border border-red-100">
+                                    {error}
+                                </div>
+                            )}
+                            {successMsg && (
+                                <div className="p-3 bg-green-50 text-green-700 text-sm rounded-lg border border-green-100">
+                                    {successMsg}
+                                </div>
+                            )}
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+                                <input
+                                    type="text"
+                                    required
+                                    value={newName}
+                                    onChange={(e) => setNewName(e.target.value)}
+                                    className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:border-brand-orange focus:ring-1 focus:ring-brand-orange"
+                                    placeholder="e.g. Rahul Sharma"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
+                                <input
+                                    type="email"
+                                    required
+                                    value={newEmail}
+                                    onChange={(e) => setNewEmail(e.target.value)}
+                                    className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:border-brand-orange focus:ring-1 focus:ring-brand-orange"
+                                    placeholder="agent@airnetz.com"
+                                />
+                            </div>
+                            <div className="pt-4 flex gap-3">
+                                <button
+                                    type="button"
+                                    onClick={() => setIsModalOpen(false)}
+                                    className="flex-1 px-4 py-2 border border-gray-200 text-gray-600 rounded-lg hover:bg-gray-50 transition-colors font-medium"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    type="submit"
+                                    disabled={isSubmitting}
+                                    className="flex-1 px-4 py-2 bg-brand-orange text-white rounded-lg hover:bg-orange-600 transition-colors font-medium disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center"
+                                >
+                                    {isSubmitting ? 'Creating...' : 'Create Agent'}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

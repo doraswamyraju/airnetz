@@ -42,7 +42,9 @@ const Customers: React.FC = () => {
                     <h1 className="text-2xl font-bold text-gray-900">Customers Management</h1>
                     <p className="text-gray-500 text-sm mt-1">Manage all registered customers and their service history</p>
                 </div>
-                <button className="bg-brand-orange text-white px-4 py-2 rounded-lg hover:bg-orange-600 transition-colors flex items-center justify-center gap-2">
+                <button 
+                  onClick={() => alert('Please use the Leads tab to onboard new customers from received inquiries.')}
+                  className="bg-brand-orange text-white px-4 py-2 rounded-lg hover:bg-orange-600 transition-colors flex items-center justify-center gap-2">
                     <Plus size={20} />
                     <span>Add New Customer</span>
                 </button>
