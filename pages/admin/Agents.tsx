@@ -135,7 +135,44 @@ const Agents: React.FC = () => {
                     </div>
                 </div>
 
-                <div className="overflow-x-auto">
+                {/* Mobile: Card view */}
+                <div className="block lg:hidden divide-y divide-gray-100">
+                    {filteredAgents.length > 0 ? filteredAgents.map((agent) => (
+                        <div key={agent.id} className="p-4 hover:bg-gray-50">
+                            <div className="flex items-start justify-between">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-11 h-11 rounded-full bg-brand-orange/10 text-brand-orange flex items-center justify-center font-bold flex-shrink-0">
+                                        {agent.name.split(' ').map((n: string) => n[0]).join('')}
+                                    </div>
+                                    <div>
+                                        <p className="font-semibold text-gray-900">{agent.name}</p>
+                                        <p className="text-xs text-gray-500">{agent.email}</p>
+                                        {agent.location && <p className="text-xs text-gray-400 mt-0.5">📍 {agent.location}</p>}
+                                    </div>
+                                </div>
+                                <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium flex-shrink-0 ml-2 ${agent.is_active ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                                    {agent.is_active ? 'Active' : 'Inactive'}
+                                </span>
+                            </div>
+                            <div className="flex items-center gap-2 mt-3 pl-14">
+                                <button onClick={() => handleResendPassword(agent.id)} className="flex-1 py-1.5 text-xs border border-gray-200 rounded-lg text-gray-600 hover:bg-gray-50 flex items-center justify-center gap-1">
+                                    <Mail size={13} /> Reset Password
+                                </button>
+                                <button onClick={() => handleToggleStatus(agent.id, agent.is_active)} className={`flex-1 py-1.5 text-xs border rounded-lg flex items-center justify-center gap-1 ${agent.is_active ? 'border-orange-200 text-orange-600 hover:bg-orange-50' : 'border-green-200 text-green-600 hover:bg-green-50'}`}>
+                                    <Power size={13} /> {agent.is_active ? 'Deactivate' : 'Activate'}
+                                </button>
+                                <button onClick={() => handleDeleteAgent(agent.id)} className="p-2 border border-red-200 rounded-lg text-red-500 hover:bg-red-50">
+                                    <Trash2 size={14} />
+                                </button>
+                            </div>
+                        </div>
+                    )) : (
+                        <div className="p-8 text-center text-gray-400">No agents found</div>
+                    )}
+                </div>
+
+                {/* Desktop: Table view */}
+                <div className="hidden lg:block overflow-x-auto">
                     <table className="w-full text-left border-collapse">
                         <thead>
                             <tr className="bg-gray-50/50 text-gray-500 text-sm border-b border-gray-100">

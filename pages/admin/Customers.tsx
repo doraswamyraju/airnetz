@@ -136,7 +136,43 @@ const Customers: React.FC = () => {
                     </div>
                 </div>
 
-                <div className="overflow-x-auto">
+                {/* Mobile: Card view */}
+                <div className="block lg:hidden divide-y divide-gray-100">
+                    {filteredCustomers.length > 0 ? filteredCustomers.map((customer) => (
+                        <div key={customer.id} className="p-4 hover:bg-gray-50">
+                            <div className="flex items-start justify-between">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-11 h-11 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold flex-shrink-0">
+                                        {customer.customer_name.split(' ').map((n: string) => n[0]).join('')}
+                                    </div>
+                                    <div>
+                                        <p className="font-semibold text-gray-900">{customer.customer_name}</p>
+                                        <p className="text-xs text-gray-500">{customer.phone}</p>
+                                        {customer.address && <p className="text-xs text-gray-400 mt-0.5">📍 {customer.address}</p>}
+                                    </div>
+                                </div>
+                                <div className="flex flex-col items-end gap-1 flex-shrink-0 ml-2">
+                                    <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${customer.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
+                                        {customer.status}
+                                    </span>
+                                    <span className="text-xs text-gray-400">{customer.plan_name || 'No Plan'}</span>
+                                </div>
+                            </div>
+                            <div className="flex items-center gap-2 mt-3 pl-14">
+                                <button 
+                                  onClick={() => handleDeleteCustomer(customer.id)}
+                                  className="flex-1 py-1.5 text-xs border border-red-200 rounded-lg text-red-600 hover:bg-red-50 flex items-center justify-center gap-1">
+                                    <Trash2 size={13} /> Delete
+                                </button>
+                            </div>
+                        </div>
+                    )) : (
+                        <div className="p-8 text-center text-gray-400">No customers found</div>
+                    )}
+                </div>
+
+                {/* Desktop: Table view */}
+                <div className="hidden lg:block overflow-x-auto">
                     <table className="w-full text-left border-collapse">
                         <thead>
                             <tr className="bg-gray-50/50 text-gray-500 text-sm border-b border-gray-100">
@@ -167,10 +203,7 @@ const Customers: React.FC = () => {
                                         <td className="p-4 text-sm text-gray-600">{customer.address}</td>
                                         <td className="p-4 text-sm text-gray-900 font-medium">{customer.plan_name || 'No Plan'}</td>
                                         <td className="p-4">
-                                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${customer.status === 'active' ? 'bg-green-100 text-green-700' :
-                                                    customer.status === 'pending' ? 'bg-yellow-100 text-yellow-700' :
-                                                        'bg-gray-100 text-gray-700'
-                                                }`}>
+                                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${customer.status === 'active' ? 'bg-green-100 text-green-700' : customer.status === 'pending' ? 'bg-yellow-100 text-yellow-700' : 'bg-gray-100 text-gray-700'}`}>
                                                 {customer.status}
                                             </span>
                                         </td>

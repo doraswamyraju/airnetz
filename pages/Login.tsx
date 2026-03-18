@@ -31,9 +31,12 @@ const Login: React.FC = () => {
         // Store user info in localStorage for session handling
         localStorage.setItem('user', JSON.stringify(data.user));
         
-        if (role === 'admin') {
+        // If first login with temp password, force password change
+        if (data.user.must_change_password) {
+          navigate('/change-password');
+        } else if (role === 'admin') {
           navigate('/admin');
-        } else if (role === 'employee') {
+        } else if (role === 'agent') {
           navigate('/agent');
         } else {
           navigate('/customer');
@@ -74,9 +77,9 @@ const Login: React.FC = () => {
               <span className="text-sm">Customer</span>
             </button>
             <button
-              onClick={() => setRole('employee')}
+              onClick={() => setRole('agent')}
               className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl font-bold transition-all ${
-                role === 'employee' ? 'bg-white text-orange-600 shadow-md' : 'text-gray-500 hover:text-gray-700'
+                role === 'agent' ? 'bg-white text-orange-600 shadow-md' : 'text-gray-500 hover:text-gray-700'
               }`}
             >
               <Briefcase size={18} />

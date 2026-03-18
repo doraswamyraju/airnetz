@@ -31,10 +31,15 @@ app.post('/api/auth/login', async (req, res) => {
     
     if (rows.length > 0) {
       const user = rows[0];
-      // In a real app, we would return a JWT here
       res.json({ 
         success: true, 
-        user: { id: user.id, name: user.name, email: user.email, role: user.role } 
+        user: { 
+          id: user.id, 
+          name: user.name, 
+          email: user.email, 
+          role: user.role,
+          must_change_password: user.must_change_password === 1
+        } 
       });
     } else {
       res.status(401).json({ success: false, message: 'Invalid credentials' });
@@ -42,6 +47,20 @@ app.post('/api/auth/login', async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
+// Change Password (after first login)
+app.put('/api/auth/change-password', async (req, res) => {
+  const { userId, newPassword } = req.body;
+  try {
+    await pool.query(
+      'UPDATE users SET password = ?, must_change_password = 0 WHERE id = ?',
+      [newPassword, userId]
+    );
+    res.json({ success: true, message: 'Password changed successfully' });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
   }
 });
 
@@ -128,6 +147,7 @@ app.get('/api/admin/migrate', async (req, res) => {
     await pool.query('ALTER TABLE users ADD COLUMN phone VARCHAR(20) NULL');
     await pool.query('ALTER TABLE users ADD COLUMN location VARCHAR(255) NULL');
     await pool.query('ALTER TABLE users ADD COLUMN is_active BOOLEAN DEFAULT TRUE');
+    await pool.query('ALTER TABLE users ADD COLUMN must_change_password BOOLEAN DEFAULT FALSE');
     await pool.query('ALTER TABLE payments ADD COLUMN agent_id INT NULL');
     await pool.query('ALTER TABLE payments ADD COLUMN commission_amount DECIMAL(10, 2) DEFAULT 0.00');
     res.json({ message: 'Migration successful' });
@@ -195,8 +215,8 @@ app.post('/api/admin/agents', async (req, res) => {
   try {
     const defaultPassword = 'agent' + Math.floor(100 + Math.random() * 900);
     const [result] = await pool.query(
-      'INSERT INTO users (name, email, password, role, phone, location, is_active) VALUES (?, ?, ?, ?, ?, ?, ?)',
-      [name, email, defaultPassword, 'agent', phone, location, true]
+      'INSERT INTO users (name, email, password, role, phone, location, is_active, must_change_password) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+      [name, email, defaultPassword, 'agent', phone, location, true, 1]
     );
 
     // Send Welcome Email

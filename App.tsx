@@ -20,6 +20,7 @@ import Payments from './pages/admin/Payments';
 import ActiveAgents from './pages/admin/ActiveAgents';
 import LeadsManager from './pages/admin/Leads';
 import Login from './pages/Login';
+import ChangePassword from './pages/ChangePassword';
 import AgentLayout from './components/agent/AgentLayout';
 import AgentDashboard from './pages/agent/AgentDashboard';
 import AgentTasks from './pages/agent/Tasks';
@@ -79,6 +80,7 @@ const App: React.FC = () => {
           <Route path="/book" element={<BookConnection />} />
           <Route path="/support" element={<Support />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/change-password" element={<ChangePassword />} />
         </Route>
 
         {/* Agent Routes */}
