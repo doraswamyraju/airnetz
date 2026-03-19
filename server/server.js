@@ -442,7 +442,7 @@ app.delete('/api/admin/agents/:id', async (req, res) => {
 app.get('/api/admin/agents/live', async (req, res) => {
   try {
     const [agents] = await pool.query(`
-      SELECT u.id, u.name, u.phone, u.location, u.is_active,
+      SELECT u.id, u.name, u.phone, u.location, u.is_active, u.lat, u.lng, u.last_seen,
              sr.id as active_request_id, sr.type as task_type, sr.status as task_status, sr.address as destination
       FROM users u
       LEFT JOIN service_requests sr ON u.id = sr.agent_id AND sr.status = 'In Progress'
@@ -457,7 +457,10 @@ app.get('/api/admin/agents/live', async (req, res) => {
       location: agent.location || 'Unknown',
       status: agent.active_request_id ? 'Working' : 'Available',
       destination: agent.destination || agent.location || 'Station',
-      task: agent.task_type || null
+      task: agent.task_type || null,
+      lat: agent.lat,
+      lng: agent.lng,
+      last_seen: agent.last_seen
     }));
 
     res.json(trackingData);

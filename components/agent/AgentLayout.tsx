@@ -31,6 +31,7 @@ const AgentLayout: React.FC = () => {
       navigator.geolocation.getCurrentPosition(
         (pos) => {
           setGpsStatus('active');
+          console.log(`Pushing location for agent ${user.id}:`, pos.coords.latitude, pos.coords.longitude);
           fetch('/api/agent/location', {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
@@ -39,9 +40,12 @@ const AgentLayout: React.FC = () => {
               lat: pos.coords.latitude,
               lng: pos.coords.longitude,
             }),
-          }).catch(() => {});
+          }).then(r => r.json()).then(d => console.log('Location push response:', d)).catch((err) => console.error('Location push failed:', err));
         },
-        () => setGpsStatus('denied'),
+        (err) => {
+            console.warn('GPS Error:', err.message);
+            setGpsStatus('denied');
+        },
         { enableHighAccuracy: true, timeout: 10000 }
       );
     };

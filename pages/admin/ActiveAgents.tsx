@@ -192,10 +192,15 @@ const ActiveAgents: React.FC = () => {
                                         <p className="text-xs text-gray-600 m-0 flex items-center gap-1 mt-1">
                                             <Phone size={10} /> {agent.phone || 'N/A'}
                                         </p>
+                                        {agent.last_seen && (
+                                            <p className="text-[10px] text-gray-400 mt-1">
+                                                Last seen: {new Date(agent.last_seen).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                            </p>
+                                        )}
                                         {!agent.isSimulated ? (
                                             <p className="text-[10px] text-green-600 font-bold mt-2 flex items-center gap-1">
                                                 <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
-Live GPS Telemetry
+                                                Live GPS Telemetry
                                             </p>
                                         ) : (
                                             <p className="text-[10px] text-gray-400 italic mt-2">Station Reference</p>
