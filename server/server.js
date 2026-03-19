@@ -106,6 +106,8 @@ app.post('/api/customer/requests', async (req, res) => {
       'INSERT INTO service_requests (id, customer_id, type, description, address, phone, requested_date) VALUES (?, ?, ?, ?, ?, ?, CURDATE())',
       [requestId, customer_id, type, description, address, phone]
     );
+    // Notify admin of new service request
+    await createNotification(1, 'New Service Request', `A new ${type} request (${requestId}) has been submitted and needs assignment.`, 'info', '/admin/requests');
     res.json({ success: true, requestId });
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -363,9 +365,12 @@ app.post('/api/admin/agents', async (req, res) => {
     };
     try {
       await transporter.sendMail(mailOptions);
+      // Notify admin of new agent
+      await createNotification(1, 'New Agent Created', `Agent ${name} (${email}) has been added to the system.`, 'success', '/admin/agents');
       res.json({ success: true, id: result.insertId, name, email, phone, location, defaultPassword });
     } catch (e) {
       console.error('Agent email failed:', e);
+      await createNotification(1, 'New Agent Created', `Agent ${name} added but email failed to send.`, 'warning', '/admin/agents');
       res.json({ success: true, warning: 'Agent created but email failed: ' + e.message, id: result.insertId });
     }
   } catch (error) {
@@ -539,6 +544,9 @@ app.post('/api/admin/customers', async (req, res) => {
       }
     }
 
+    // Notify admin
+    await createNotification(1, 'Customer Onboarded', `Customer ${name} has been ${isNewUser ? 'created' : 'updated'}.`, 'success', '/admin/customers');
+
     res.json({ success: true, isNewUser, initialPassword, message: isNewUser ? 'Customer created and email sent' : 'Existing user updated as customer' });
   } catch (error) {
     console.error('Customer Creation Error:', error);
@@ -608,6 +616,9 @@ app.post('/api/admin/requests', async (req, res) => {
       'INSERT INTO service_requests (id, customer_id, type, description, address, phone, priority, status, agent_id, requested_date) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, CURDATE())',
       [requestId, customerId, type, description || `New manual request for ${type}`, address, phone, priority || 'Medium', status, agent_id || null]
     );
+
+    // Notify admin
+    await createNotification(1, 'New Request Created', `Manual request ${requestId} for ${name} has been logged.`, 'info', '/admin/requests');
 
     res.json({ success: true, requestId, isNewUser, initialPassword });
   } catch (err) {
@@ -739,6 +750,9 @@ app.post('/api/public/book', async (req, res) => {
       console.error('Welcome email failed:', e);
     }
 
+    // Notify admin of new lead/booking
+    await createNotification(1, 'New Website Booking', `${name} just booked a ${serviceType} connection!`, 'success', '/admin/leads');
+
     res.json({ success: true, leadId, requestId });
   } catch (error) {
     console.error('Booking/Account creation error:', error);
@@ -793,6 +807,9 @@ app.post('/api/leads/convert', async (req, res) => {
       // 3. Create Customer Profile
       const customerSql = 'INSERT INTO customers (user_id, address, phone, status) VALUES (?, ?, ?, ?)';
       await pool.query(customerSql, [userId, lead.address, lead.phone, 'active']);
+      
+      // Notify admin
+      await createNotification(1, 'Lead Converted', `${lead.name} has been converted to an active customer.`, 'success', '/admin/customers');
     }
 
     // 4. Update Lead Status
