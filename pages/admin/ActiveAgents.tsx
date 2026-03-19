@@ -5,8 +5,11 @@ import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
 
 // Fix for default marker icons in React-Leaflet
+// @ts-ignore
 import markerIcon from 'leaflet/dist/images/marker-icon.png';
+// @ts-ignore
 import markerIconRetina from 'leaflet/dist/images/marker-icon-2x.png';
+// @ts-ignore
 import markerShadow from 'leaflet/dist/images/marker-shadow.png';
 
 let DefaultIcon = L.icon({
@@ -43,10 +46,21 @@ const createAgentIcon = (status: string, hasGps: boolean) => {
     });
 };
 
-// Component to handle map center updates
-const ChangeView = ({ center }: { center: [number, number] }) => {
+// Component to handle map center updates and fix size issues
+const MapController = ({ center }: { center: [number, number] }) => {
     const map = useMap();
-    map.setView(center, 13);
+    
+    useEffect(() => {
+        // Fix for Leaflet partial loading (common in React)
+        setTimeout(() => {
+            map.invalidateSize();
+        }, 500);
+    }, [map]);
+
+    useEffect(() => {
+        map.setView(center, map.getZoom());
+    }, [center, map]);
+
     return null;
 };
 
@@ -170,7 +184,7 @@ const ActiveAgents: React.FC = () => {
                             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                         />
-                        <ChangeView center={mapCenter} />
+                        <MapController center={mapCenter} />
                         
                         {filteredAgents.map((agent) => (
                             <Marker 
