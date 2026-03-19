@@ -1,9 +1,13 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Users, UserCircle, CreditCard, ClipboardList, TrendingUp, Bell, X } from 'lucide-react';
 import { api } from '../../services/api';
 
-const StatCard = ({ title, value, icon: Icon, color, trend }: any) => (
-  <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm">
+const StatCard = ({ title, value, icon: Icon, color, trend, onClick }: any) => (
+  <div 
+    onClick={onClick}
+    className={`bg-white p-6 rounded-xl border border-gray-100 shadow-sm transition-all ${onClick ? 'cursor-pointer hover:shadow-md hover:-translate-y-0.5 hover:border-gray-200' : ''}`}
+  >
     <div className="flex items-start justify-between">
       <div>
         <p className="text-sm font-medium text-gray-500">{title}</p>
@@ -20,10 +24,12 @@ const StatCard = ({ title, value, icon: Icon, color, trend }: any) => (
         <span className="text-gray-400 ml-1">vs last month</span>
       </div>
     )}
+    {onClick && <p className="mt-3 text-xs text-brand-orange font-medium">View Details →</p>}
   </div>
 );
 
 const AdminDashboard: React.FC = () => {
+  const navigate = useNavigate();
   const [stats, setStats] = useState<any>(null);
   const [requests, setRequests] = useState<any[]>([]);
   const [agents, setAgents] = useState<any[]>([]);
@@ -93,19 +99,21 @@ const AdminDashboard: React.FC = () => {
         <p className="text-gray-500 mt-1">Overview of service performance</p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard
           title="Total Requests"
           value={stats?.totalRequests || 0}
           icon={ClipboardList}
           color="bg-blue-500"
           trend="+12%"
+          onClick={() => navigate('/admin/requests')}
         />
         <StatCard
           title="Active Agents"
           value={stats?.activeAgents || 0}
           icon={Users}
           color="bg-green-500"
+          onClick={() => navigate('/admin/agents')}
         />
         <StatCard
           title="Total Customers"
@@ -113,6 +121,7 @@ const AdminDashboard: React.FC = () => {
           icon={UserCircle}
           color="bg-purple-500"
           trend="+5%"
+          onClick={() => navigate('/admin/customers')}
         />
         <StatCard
           title="Revenue (This Month)"
@@ -120,6 +129,7 @@ const AdminDashboard: React.FC = () => {
           icon={CreditCard}
           color="bg-orange-500"
           trend="+18%"
+          onClick={() => navigate('/admin/payments')}
         />
       </div>
 

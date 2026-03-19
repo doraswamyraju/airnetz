@@ -25,17 +25,27 @@ const ActiveAgents: React.FC = () => {
         return () => clearInterval(interval);
     }, []);
 
-    // Deterministic pseudo-random position based on ID for visual map
-    const getMapPosition = (id: number) => {
+    // Use real GPS if available, else fall back to pseudo-random position for demo
+    const getMapPosition = (agent: any) => {
+        if (agent.lat && agent.lng) {
+            // Normalize real GPS to percentage position within the map area
+            // Tirupati area: lat ~13.6, lng ~79.4 — clamp to a reasonable range
+            const clampedLat = Math.min(Math.max(agent.lat, 8), 22); // India lat range
+            const clampedLng = Math.min(Math.max(agent.lng, 68), 98); // India lng range
+            const top = `${100 - ((clampedLat - 8) / 14) * 80 + 5}%`;
+            const left = `${((clampedLng - 68) / 30) * 80 + 5}%`;
+            return { top, left };
+        }
+        // Fallback pseudo-random
         return {
-            top: `${((id * 37) % 70) + 15}%`,
-            left: `${((id * 43) % 75) + 10}%`
+            top: `${((agent.id * 37) % 70) + 15}%`,
+            left: `${((agent.id * 43) % 75) + 10}%`
         };
     };
 
     const filteredAgents = agents.filter(a => 
         a.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-        a.destination.toLowerCase().includes(searchTerm.toLowerCase())
+        (a.destination || '').toLowerCase().includes(searchTerm.toLowerCase())
     );
     return (
         <div className="space-y-6 flex flex-col h-[calc(100vh-120px)]">
@@ -104,7 +114,7 @@ const ActiveAgents: React.FC = () => {
 
                     {/* Agent Map Markers */}
                     {filteredAgents.map((agent) => {
-                        const pos = getMapPosition(agent.id);
+                        const pos = getMapPosition(agent);
                         return (
                         <div
                             key={agent.id}
@@ -117,12 +127,14 @@ const ActiveAgents: React.FC = () => {
                                     <div className="w-8 h-8 bg-blue-500 border-2 border-white shadow-md rounded-full flex items-center justify-center text-white relative z-10">
                                         <Navigation size={14} className="rotate-45" />
                                     </div>
+                                    {agent.lat && <span className="absolute -top-1 -right-1 w-3 h-3 bg-green-400 rounded-full border border-white z-20" title="Real GPS" />}
                                 </div>
                             ) : (
                                 <div className="relative flex items-center justify-center">
                                     <div className="w-8 h-8 bg-brand-orange border-2 border-white shadow-md rounded-full flex items-center justify-center text-white relative z-10">
                                         <MapPin size={14} />
                                     </div>
+                                    {agent.lat && <span className="absolute -top-1 -right-1 w-3 h-3 bg-green-400 rounded-full border border-white z-20" title="Real GPS" />}
                                 </div>
                             )}
 
@@ -130,6 +142,7 @@ const ActiveAgents: React.FC = () => {
                             <div className="absolute top-10 left-1/2 -translate-x-1/2 bg-white rounded-lg shadow-lg border border-gray-100 p-2 min-w-[120px] opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-20 text-center">
                                 <p className="text-xs font-bold text-gray-900">{agent.name}</p>
                                 <p className="text-[10px] text-gray-500">{agent.status}</p>
+                                {agent.lat && <p className="text-[10px] text-green-600 font-medium">📍 Real GPS</p>}
                                 <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-white border-t border-l border-gray-100 rotate-45"></div>
                             </div>
                         </div>

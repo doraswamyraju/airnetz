@@ -158,5 +158,25 @@ export const api = {
   getLeads: async () => {
     const res = await fetch(`${API_BASE}/admin/leads`);
     return res.json();
-  }
+  },
+
+  getAdminReports: async () => {
+    const res = await fetch(`${API_BASE}/admin/reports`);
+    return res.json();
+  },
+
+  getNotifications: async (userId: number) => {
+    const res = await fetch(`${API_BASE.replace('/admin', '')}/notifications/${userId}`);
+    return res.json();
+  },
+
+  markNotificationRead: async (id: number) => {
+    const res = await fetch(`${API_BASE.replace('/admin', '')}/notifications/${id}/read`, { method: 'PUT' });
+    return res.json();
+  },
+
+  markAllNotificationsRead: async (userId: number) => {
+    const res = await fetch(`${API_BASE.replace('/admin', '')}/notifications/readall/${userId}`, { method: 'PUT' });
+    return res.json();
+  },
 };

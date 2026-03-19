@@ -8,15 +8,54 @@ import {
   BarChart3, 
   Settings, 
   LogOut, 
-  Menu, 
-  X, 
-  Bell 
+  Menu,
+  Bell,
+  MapPin,
+  WifiOff
 } from 'lucide-react';
 
 const AgentLayout: React.FC = () => {
   const [isSidebarOpen, setIsSidebarOpen] = React.useState(false);
+  const [gpsStatus, setGpsStatus] = React.useState<'idle' | 'active' | 'denied'>('idle');
   const location = useLocation();
   const navigate = useNavigate();
+
+  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  const initials = user.name ? user.name.split(' ').map((n: string) => n[0]).join('').toUpperCase() : 'AG';
+
+  // GPS Location Push — every 30 seconds
+  React.useEffect(() => {
+    if (!user.id || !('geolocation' in navigator)) return;
+
+    const pushLocation = () => {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          setGpsStatus('active');
+          fetch('/api/agent/location', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              userId: user.id,
+              lat: pos.coords.latitude,
+              lng: pos.coords.longitude,
+            }),
+          }).catch(() => {});
+        },
+        () => setGpsStatus('denied'),
+        { enableHighAccuracy: true, timeout: 10000 }
+      );
+    };
+
+    navigator.permissions.query({ name: 'geolocation' }).then((result) => {
+      if (result.state === 'denied') {
+        setGpsStatus('denied');
+      } else {
+        pushLocation();
+        const interval = setInterval(pushLocation, 30000);
+        return () => clearInterval(interval);
+      }
+    });
+  }, [user.id]);
 
   // Close sidebar on route change (mobile)
   React.useEffect(() => {
@@ -94,25 +133,39 @@ const AgentLayout: React.FC = () => {
             <Menu size={24} />
           </button>
 
-          <div className="flex items-center gap-4 ml-auto">
+          <div className="flex items-center gap-3 ml-auto">
+            {/* GPS Status Indicator */}
+            <div className={`flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full font-medium ${
+              gpsStatus === 'active' ? 'bg-green-100 text-green-700' :
+              gpsStatus === 'denied' ? 'bg-red-100 text-red-600' :
+              'bg-gray-100 text-gray-500'
+            }`}>
+              {gpsStatus === 'denied' ? <WifiOff size={12} /> : <MapPin size={12} />}
+              <span className="hidden sm:inline">
+                {gpsStatus === 'active' ? 'GPS Live' : gpsStatus === 'denied' ? 'GPS Off' : 'GPS...'}
+              </span>
+            </div>
+
             <button className="p-2 text-gray-500 hover:bg-gray-100 rounded-full relative">
               <Bell size={20} />
-              <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border border-white"></span>
             </button>
-            <div className="flex items-center gap-3">
+
+            <div className="flex items-center gap-2">
               <div className="text-right hidden sm:block">
-                <div className="text-sm font-bold text-gray-900">Rajesh V</div>
-                <div className="text-xs text-green-500 font-medium">Online</div>
+                <div className="text-sm font-bold text-gray-900">{user.name || 'Agent'}</div>
+                <div className="text-xs text-green-500 font-medium">
+                  {gpsStatus === 'active' ? '● Live' : 'Online'}
+                </div>
               </div>
-              <div className="h-9 w-9 rounded-xl bg-orange-100 text-orange-600 flex items-center justify-center font-bold">
-                RV
+              <div className="h-9 w-9 rounded-xl bg-orange-100 text-orange-600 flex items-center justify-center font-bold text-sm">
+                {initials}
               </div>
             </div>
           </div>
         </header>
 
         {/* Page Content */}
-        <main className="flex-1 p-4 lg:p-8 overflow-y-auto">
+        <main className="flex-1 p-3 sm:p-6 lg:p-8 overflow-y-auto">
           <div className="max-w-6xl mx-auto">
             <Outlet />
           </div>

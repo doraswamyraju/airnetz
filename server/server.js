@@ -143,16 +143,139 @@ app.get('/api/admin/requests', async (req, res) => {
 
 // Migration Endpoint
 app.get('/api/admin/migrate', async (req, res) => {
+  const results = [];
+  const runMigration = async (sql) => {
+    try { await pool.query(sql); results.push({ sql: sql.split(' ').slice(0, 6).join(' '), status: 'ok' }); }
+    catch (e) { results.push({ sql: sql.split(' ').slice(0, 6).join(' '), status: 'skipped', error: e.message }); }
+  };
+  
+  await runMigration('ALTER TABLE users ADD COLUMN phone VARCHAR(20) NULL');
+  await runMigration('ALTER TABLE users ADD COLUMN location VARCHAR(255) NULL');
+  await runMigration('ALTER TABLE users ADD COLUMN is_active BOOLEAN DEFAULT TRUE');
+  await runMigration('ALTER TABLE users ADD COLUMN must_change_password BOOLEAN DEFAULT FALSE');
+  await runMigration('ALTER TABLE users ADD COLUMN lat DECIMAL(10,8) DEFAULT NULL');
+  await runMigration('ALTER TABLE users ADD COLUMN lng DECIMAL(11,8) DEFAULT NULL');
+  await runMigration('ALTER TABLE users ADD COLUMN last_seen TIMESTAMP NULL');
+  await runMigration('ALTER TABLE payments ADD COLUMN agent_id INT NULL');
+  await runMigration('ALTER TABLE payments ADD COLUMN commission_amount DECIMAL(10, 2) DEFAULT 0.00');
+  await runMigration(`
+    CREATE TABLE IF NOT EXISTS notifications (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      user_id INT NOT NULL,
+      title VARCHAR(255),
+      message TEXT,
+      type ENUM('info', 'warning', 'success', 'error') DEFAULT 'info',
+      is_read BOOLEAN DEFAULT FALSE,
+      link VARCHAR(255) NULL,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    )
+  `);
+  
+  res.json({ message: 'Migration complete', results });
+});
+
+// Agent GPS Location Update
+app.put('/api/agent/location', async (req, res) => {
+  const { userId, lat, lng } = req.body;
   try {
-    await pool.query('ALTER TABLE users ADD COLUMN phone VARCHAR(20) NULL');
-    await pool.query('ALTER TABLE users ADD COLUMN location VARCHAR(255) NULL');
-    await pool.query('ALTER TABLE users ADD COLUMN is_active BOOLEAN DEFAULT TRUE');
-    await pool.query('ALTER TABLE users ADD COLUMN must_change_password BOOLEAN DEFAULT FALSE');
-    await pool.query('ALTER TABLE payments ADD COLUMN agent_id INT NULL');
-    await pool.query('ALTER TABLE payments ADD COLUMN commission_amount DECIMAL(10, 2) DEFAULT 0.00');
-    res.json({ message: 'Migration successful' });
+    await pool.query(
+      'UPDATE users SET lat = ?, lng = ?, last_seen = NOW() WHERE id = ?',
+      [lat, lng, userId]
+    );
+    res.json({ success: true });
   } catch (error) {
-    res.json({ message: 'Migration skipped or failed', error: error.message });
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// Get Notifications for a user
+app.get('/api/notifications/:userId', async (req, res) => {
+  try {
+    const [rows] = await pool.query(
+      'SELECT * FROM notifications WHERE user_id = ? ORDER BY created_at DESC LIMIT 20',
+      [req.params.userId]
+    );
+    const unreadCount = rows.filter(r => !r.is_read).length;
+    res.json({ notifications: rows, unreadCount });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// Mark notification as read
+app.put('/api/notifications/:id/read', async (req, res) => {
+  try {
+    await pool.query('UPDATE notifications SET is_read = TRUE WHERE id = ?', [req.params.id]);
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// Mark all notifications as read for a user
+app.put('/api/notifications/readall/:userId', async (req, res) => {
+  try {
+    await pool.query('UPDATE notifications SET is_read = TRUE WHERE user_id = ?', [req.params.userId]);
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// Helper: Create a notification
+const createNotification = async (userId, title, message, type = 'info', link = null) => {
+  try {
+    await pool.query(
+      'INSERT INTO notifications (user_id, title, message, type, link) VALUES (?, ?, ?, ?, ?)',
+      [userId, title, message, type, link]
+    );
+  } catch (e) {
+    console.error('Failed to create notification:', e.message);
+  }
+};
+
+// Admin Reports - Real Data
+app.get('/api/admin/reports', async (req, res) => {
+  try {
+    const [[totals]] = await pool.query(`
+      SELECT 
+        COUNT(*) as totalRequests,
+        SUM(CASE WHEN status = 'Completed' THEN 1 ELSE 0 END) as completed,
+        SUM(CASE WHEN status = 'In Progress' THEN 1 ELSE 0 END) as inProgress,
+        SUM(CASE WHEN status = 'Pending' THEN 1 ELSE 0 END) as pending
+      FROM service_requests
+    `);
+
+    const [monthlyRevenue] = await pool.query(`
+      SELECT 
+        DATE_FORMAT(payment_date, '%b %Y') as month,
+        SUM(amount) as revenue
+      FROM payments
+      WHERE payment_date >= DATE_SUB(NOW(), INTERVAL 6 MONTH)
+      GROUP BY DATE_FORMAT(payment_date, '%Y-%m')
+      ORDER BY MIN(payment_date) ASC
+    `);
+
+    const [agentPerformance] = await pool.query(`
+      SELECT u.name, 
+        COUNT(sr.id) as totalAssigned,
+        SUM(CASE WHEN sr.status = 'Completed' THEN 1 ELSE 0 END) as completed
+      FROM users u
+      LEFT JOIN service_requests sr ON u.id = sr.agent_id
+      WHERE u.role = 'agent'
+      GROUP BY u.id, u.name
+      ORDER BY completed DESC
+      LIMIT 10
+    `);
+
+    const [requestsByType] = await pool.query(`
+      SELECT type, COUNT(*) as count FROM service_requests GROUP BY type
+    `);
+
+    res.json({ totals, monthlyRevenue, agentPerformance, requestsByType });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
   }
 });
 
