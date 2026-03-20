@@ -13,7 +13,7 @@ import {
   MapPin,
   WifiOff
 } from 'lucide-react';
-import { api } from '../services/api';
+import { api } from '../../services/api';
 
 const AgentLayout: React.FC = () => {
   const [isSidebarOpen, setIsSidebarOpen] = React.useState(false);

@@ -1,7 +1,7 @@
 import React from 'react';
 import { Outlet, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { LayoutDashboard, Users, UserCircle, ClipboardList, Settings, LogOut, Menu, Bell, BarChart3, CreditCard, MapPin, UserPlus, X, CheckCheck } from 'lucide-react';
-import { api } from '../services/api';
+import { api } from '../../services/api';
 
 const AdminLayout: React.FC = () => {
   const [isSidebarOpen, setIsSidebarOpen] = React.useState(false);
