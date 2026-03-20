@@ -35,11 +35,11 @@ app.post('/api/auth/login', async (req, res) => {
       
       // Check password (allow plaintext fallback for existing accounts without bcrypt)
       let isMatch = false;
-      if (user.password && (user.password.startsWith('$2a$') || user.password.startsWith('$2b$'))) {
-          isMatch = await bcrypt.compare(password, user.password);
+      const dbPass = user.password ? String(user.password) : '';
+      if (dbPass.startsWith('$2a$') || dbPass.startsWith('$2b$')) {
+          isMatch = await bcrypt.compare(String(password), dbPass);
       } else {
-          isMatch = (password === user.password);
-          // Optional: automatically upgrade plaintext to bcrypt here if needed
+          isMatch = (String(password) === dbPass);
       }
 
       if (isMatch) {
@@ -61,7 +61,7 @@ app.post('/api/auth/login', async (req, res) => {
     }
   } catch (error) {
     console.error(error);
-    res.status(500).json({ success: false, message: 'Server error' });
+    res.status(500).json({ success: false, message: error.message || 'Server error' });
   }
 });
 
