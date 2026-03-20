@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Shield, User, Briefcase, Lock, Mail, ArrowRight, AlertCircle } from 'lucide-react';
+import { Shield, User, Briefcase, Lock, Mail, ArrowRight, AlertCircle, ArrowLeft } from 'lucide-react';
 import { UserRole } from '../types';
+import { api } from '../services/api';
 
 const Login: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -9,6 +10,8 @@ const Login: React.FC = () => {
   const [role, setRole] = useState<UserRole>('customer');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [isForgotMode, setIsForgotMode] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
   const navigate = useNavigate();
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -17,15 +20,7 @@ const Login: React.FC = () => {
     setLoading(true);
     
     try {
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, password, role }),
-      });
-
-      const data = await response.json();
+      const data = await api.login({ email, password, role });
 
       if (data.success) {
         // Store user info in localStorage for session handling
@@ -43,6 +38,35 @@ const Login: React.FC = () => {
         }
       } else {
         setError(data.message || 'Invalid credentials');
+      }
+    } catch (err) {
+      setError('Connection refused. Is the backend running?');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleForgotSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    setSuccessMessage('');
+    setLoading(true);
+
+    try {
+      // Create ad-hoc fetch since we didn't add forgotPassword to api.ts yet
+      // (Using the api object's API_BASE internally or a helper)
+      const API_BASE = 'https://airnetz.sriddha.com/api';
+      const response = await fetch(`${API_BASE}/auth/forgot-password`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, role })
+      });
+      const data = await response.json();
+
+      if (data.success) {
+        setSuccessMessage(data.message);
+      } else {
+        setError(data.message || 'Could not reset password.');
       }
     } catch (err) {
       setError('Connection refused. Is the backend running?');
@@ -96,65 +120,115 @@ const Login: React.FC = () => {
             </button>
           </div>
 
-          <form onSubmit={handleLogin} className="space-y-6">
-            <div>
-              <label className="block text-sm font-bold text-gray-700 mb-2 ml-1">Email Address</label>
-              <div className="relative">
-                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
-                <input
-                  type="email"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="w-full bg-slate-50 border border-gray-200 rounded-2xl py-4 pl-12 pr-4 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all font-medium"
-                  placeholder="name@example.com"
-                />
+          {isForgotMode ? (
+            <form onSubmit={handleForgotSubmit} className="space-y-6">
+              <div className="mb-4">
+                <button 
+                  type="button" 
+                  onClick={() => setIsForgotMode(false)}
+                  className="flex items-center text-sm font-bold text-gray-500 hover:text-gray-900 transition-colors"
+                >
+                  <ArrowLeft size={16} className="mr-1" /> Back to Login
+                </button>
               </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-bold text-gray-700 mb-2 ml-1">Password</label>
-              <div className="relative">
-                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
-                <input
-                  type="password"
-                  required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="w-full bg-slate-50 border border-gray-200 rounded-2xl py-4 pl-12 pr-4 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all font-medium"
-                  placeholder="••••••••"
-                />
+              <div>
+                <label className="block text-sm font-bold text-gray-700 mb-2 ml-1">Email Address</label>
+                <div className="relative">
+                  <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+                  <input
+                    type="email"
+                    required
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="w-full bg-slate-50 border border-gray-200 rounded-2xl py-4 pl-12 pr-4 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all font-medium"
+                    placeholder="name@example.com"
+                  />
+                </div>
               </div>
-            </div>
 
-            <div className="flex items-center justify-between ml-1">
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input type="checkbox" className="w-4 h-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500" />
-                <span className="text-sm text-gray-600 font-medium">Remember me</span>
-              </label>
-              <button type="button" className="text-sm font-bold text-primary-600 hover:text-primary-700">Forgot Password?</button>
-            </div>
+              {error && (
+                <div className="bg-red-50 text-red-600 p-4 rounded-xl text-sm font-bold flex items-center gap-2">
+                  <AlertCircle size={18} />
+                  {error}
+                </div>
+              )}
+              {successMessage && (
+                <div className="bg-green-50 text-green-700 p-4 rounded-xl text-sm font-bold border border-green-200">
+                  {successMessage}
+                </div>
+              )}
 
-            {error && (
-              <div className="bg-red-50 text-red-600 p-4 rounded-xl text-sm font-bold flex items-center gap-2">
-                <AlertCircle size={18} />
-                {error}
+              <button
+                type="submit"
+                disabled={loading}
+                className={`w-full py-4 rounded-2xl text-white font-bold text-lg shadow-xl transition-all hover:-translate-y-1 active:scale-95 flex items-center justify-center gap-2 ${
+                  loading ? 'opacity-70 cursor-not-allowed' : ''
+                } bg-primary-600 shadow-primary-200`}
+              >
+                {loading ? 'Sending...' : 'Send Temporary Password'} <ArrowRight size={20} />
+              </button>
+            </form>
+          ) : (
+            <form onSubmit={handleLogin} className="space-y-6">
+              <div>
+                <label className="block text-sm font-bold text-gray-700 mb-2 ml-1">Email Address</label>
+                <div className="relative">
+                  <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+                  <input
+                    type="email"
+                    required
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="w-full bg-slate-50 border border-gray-200 rounded-2xl py-4 pl-12 pr-4 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all font-medium"
+                    placeholder="name@example.com"
+                  />
+                </div>
               </div>
-            )}
 
-            <button
-              type="submit"
-              disabled={loading}
-              className={`w-full py-4 rounded-2xl text-white font-bold text-lg shadow-xl transition-all hover:-translate-y-1 active:scale-95 flex items-center justify-center gap-2 ${
-                loading ? 'opacity-70 cursor-not-allowed' : ''
-              } ${
-                role === 'admin' ? 'bg-slate-900 shadow-slate-200' : 
-                role === 'employee' ? 'bg-orange-600 shadow-orange-200' : 'bg-primary-600 shadow-primary-200'
-              }`}
-            >
-              {loading ? 'Signing In...' : 'Sign In'} <ArrowRight size={20} />
-            </button>
-          </form>
+              <div>
+                <label className="block text-sm font-bold text-gray-700 mb-2 ml-1">Password</label>
+                <div className="relative">
+                  <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+                  <input
+                    type="password"
+                    required
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="w-full bg-slate-50 border border-gray-200 rounded-2xl py-4 pl-12 pr-4 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all font-medium"
+                    placeholder="••••••••"
+                  />
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between ml-1">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input type="checkbox" className="w-4 h-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500" />
+                  <span className="text-sm text-gray-600 font-medium">Remember me</span>
+                </label>
+                <button type="button" onClick={() => { setIsForgotMode(true); setError(''); setSuccessMessage(''); }} className="text-sm font-bold text-primary-600 hover:text-primary-700">Forgot Password?</button>
+              </div>
+
+              {error && (
+                <div className="bg-red-50 text-red-600 p-4 rounded-xl text-sm font-bold flex items-center gap-2">
+                  <AlertCircle size={18} />
+                  {error}
+                </div>
+              )}
+
+              <button
+                type="submit"
+                disabled={loading}
+                className={`w-full py-4 rounded-2xl text-white font-bold text-lg shadow-xl transition-all hover:-translate-y-1 active:scale-95 flex items-center justify-center gap-2 ${
+                  loading ? 'opacity-70 cursor-not-allowed' : ''
+                } ${
+                  role === 'admin' ? 'bg-slate-900 shadow-slate-200' : 
+                  role === 'employee' ? 'bg-orange-600 shadow-orange-200' : 'bg-primary-600 shadow-primary-200'
+                }`}
+              >
+                {loading ? 'Signing In...' : 'Sign In'} <ArrowRight size={20} />
+              </button>
+            </form>
+          )}
         </div>
 
         <p className="text-center mt-8 text-gray-500">

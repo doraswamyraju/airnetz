@@ -5,6 +5,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import pool from './db.js';
 import nodemailer from 'nodemailer';
+import bcrypt from 'bcryptjs';
 
 dotenv.config();
 
@@ -25,28 +26,84 @@ app.post('/api/auth/login', async (req, res) => {
   const { email, password, role } = req.body;
   try {
     const [rows] = await pool.query(
-      'SELECT * FROM users WHERE email = ? AND password = ? AND role = ?',
-      [email, password, role]
+      'SELECT * FROM users WHERE email = ? AND role = ?',
+      [email, role]
     );
     
     if (rows.length > 0) {
       const user = rows[0];
-      res.json({ 
-        success: true, 
-        user: { 
-          id: user.id, 
-          name: user.name, 
-          email: user.email, 
-          role: user.role,
-          must_change_password: user.must_change_password === 1
-        } 
-      });
+      
+      // Check password (allow plaintext fallback for existing accounts without bcrypt)
+      let isMatch = false;
+      if (user.password && (user.password.startsWith('$2a$') || user.password.startsWith('$2b$'))) {
+          isMatch = await bcrypt.compare(password, user.password);
+      } else {
+          isMatch = (password === user.password);
+          // Optional: automatically upgrade plaintext to bcrypt here if needed
+      }
+
+      if (isMatch) {
+        res.json({ 
+          success: true, 
+          user: { 
+            id: user.id, 
+            name: user.name, 
+            email: user.email, 
+            role: user.role,
+            must_change_password: user.must_change_password === 1
+          } 
+        });
+      } else {
+        res.status(401).json({ success: false, message: 'Invalid credentials' });
+      }
     } else {
-      res.status(401).json({ success: false, message: 'Invalid credentials' });
+      res.status(401).json({ success: false, message: 'nvalid credentials' });
     }
   } catch (error) {
     console.error(error);
     res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
+// Forgot Password Request
+app.post('/api/auth/forgot-password', async (req, res) => {
+  const { email, role } = req.body;
+  try {
+    const [users] = await pool.query('SELECT * FROM users WHERE email = ? AND role = ?', [email, role]);
+    
+    if (users.length === 0) {
+      return res.status(404).json({ success: false, message: 'No account found with this email and role.' });
+    }
+    
+    const user = users[0];
+    const tempPassword = 'reset' + Math.floor(1000 + Math.random() * 9000);
+    const hashedPassword = await bcrypt.hash(tempPassword, 10);
+    
+    await pool.query('UPDATE users SET password = ?, must_change_password = 1 WHERE id = ?', [hashedPassword, user.id]);
+
+    const mailOptions = {
+      from: `"Airnetz Support" <${process.env.EMAIL_USER}>`,
+      to: email,
+      subject: 'Airnetz - Password Reset',
+      html: `
+        <div style="font-family: sans-serif; color: #333; max-width: 600px; margin: auto;">
+          <h2 style="color: #f97316;">Password Reset Request</h2>
+          <p>Hello ${user.name},</p>
+          <p>Your password for the Airnetz Portal has been reset.</p>
+          <div style="background: #f3f4f6; padding: 20px; border-radius: 10px; margin: 20px 0;">
+            <p style="margin: 0; font-weight: bold;">Your Temporary Login Credentials:</p>
+            <p><strong>Email:</strong> ${user.email}</p>
+            <p><strong>Temporary Password:</strong> ${tempPassword}</p>
+          </div>
+          <p>Please log in at: <a href="http://airnetz.sriddha.com/login" style="color: #f97316;">airnetz.sriddha.com/login</a> to change your password.</p>
+        </div>
+      `
+    };
+    await transporter.sendMail(mailOptions);
+    res.json({ success: true, message: 'A temporary password has been sent to your email.' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, message: 'Server error while resetting password.' });
   }
 });
 
