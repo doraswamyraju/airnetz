@@ -1,93 +1,109 @@
-import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { api } from './services/api';
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route, useLocation, Outlet } from 'react-router-dom';
+import Navbar from './components/Navbar';
+import Footer from './components/Footer';
+import AIChat from './components/AIChat';
+import Home from './pages/Home';
+import Broadband from './pages/Broadband';
+import DTH from './pages/DTH';
+import BookConnection from './pages/BookConnection';
+import Support from './pages/Support';
 
-// Simplified Mobile Components
-const Login = () => {
-    const [credentials, setCredentials] = useState({ email: '', password: '' });
-    const [error, setError] = useState('');
-    const [loading, setLoading] = useState(false);
+import AdminLayout from './components/admin/AdminLayout';
+import AdminDashboard from './pages/admin/Dashboard';
+import AdminRequests from './pages/admin/Requests';
+import RequestDetail from './pages/admin/RequestDetail';
+import Agents from './pages/admin/Agents';
+import Customers from './pages/admin/Customers';
+import Reports from './pages/admin/Reports';
+import Payments from './pages/admin/Payments';
+import ActiveAgents from './pages/admin/ActiveAgents';
+import LeadsManager from './pages/admin/Leads';
+import Login from './pages/Login';
+import ChangePassword from './pages/ChangePassword';
+import AgentLayout from './components/agent/AgentLayout';
+import AgentDashboard from './pages/agent/AgentDashboard';
+import AgentTasks from './pages/agent/Tasks';
+import AgentCustomers from './pages/agent/Customers';
+import AgentPayments from './pages/agent/Payments';
+import AgentReports from './pages/agent/Reports';
+import CustomerLayout from './components/customer/CustomerLayout';
+import CustomerDashboard from './pages/customer/CustomerDashboard';
+import CustomerBilling from './pages/customer/Billing';
+import CustomerSupport from './pages/customer/Support';
 
-    const handleLogin = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setLoading(true);
-        setError('');
-        try {
-            const data = await api.login(credentials);
-            if (data.token) {
-                localStorage.setItem('token', data.token);
-                localStorage.setItem('user', JSON.stringify(data.user));
-                window.location.href = data.user.role === 'admin' ? '/admin' : '/agent';
-            } else {
-                setError(data.message || 'Invalid credentials');
-            }
-        } catch (err) {
-            setError('Connection to backend failed');
-        } finally {
-            setLoading(false);
-        }
-    };
+const ScrollToTop = () => {
+  const { pathname } = useLocation();
 
-    return (
-        <div className="min-h-screen flex items-center justify-center bg-slate-50 p-6">
-            <div className="w-full max-w-md bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
-                <div className="text-center mb-8">
-                    <h1 className="text-3xl font-extrabold text-brand-orange">Airnetz</h1>
-                    <p className="text-gray-500 mt-2">Mobile Back-Office</p>
-                </div>
-                {error && <div className="bg-red-50 text-red-600 p-3 rounded-lg text-sm mb-6 border border-red-100">{error}</div>}
-                <form onSubmit={handleLogin} className="space-y-5">
-                    <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-1">Email</label>
-                        <input 
-                            type="email" 
-                            required
-                            className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-brand-orange/20 focus:border-brand-orange outline-none transition-all"
-                            value={credentials.email}
-                            onChange={e => setCredentials({...credentials, email: e.target.value})}
-                        />
-                    </div>
-                    <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-1">Password</label>
-                        <input 
-                            type="password" 
-                            required
-                            className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-brand-orange/20 focus:border-brand-orange outline-none transition-all"
-                            value={credentials.password}
-                            onChange={e => setCredentials({...credentials, password: e.target.value})}
-                        />
-                    </div>
-                    <button 
-                        type="submit" 
-                        disabled={loading}
-                        className="w-full bg-brand-orange hover:bg-orange-600 text-white font-bold py-4 rounded-xl shadow-lg shadow-orange-200 transition-all active:scale-[0.98] disabled:opacity-50"
-                    >
-                        {loading ? 'Connecting...' : 'Login to Backend'}
-                    </button>
-                </form>
-            </div>
-        </div>
-    );
-};
+  React.useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
 
-const Dashboard = ({ role }: { role: string }) => (
-    <div className="p-8 text-center">
-        <h2 className="text-2xl font-bold">Welcome to {role} Dashboard</h2>
-        <p className="text-gray-500 mt-4 underline" onClick={() => { localStorage.clear(); window.location.href = '/'; }}>Logout</p>
-    </div>
+  return null;
+}
+
+const PublicLayout = () => (
+  <div className="flex flex-col min-h-screen">
+    <Navbar />
+    <main className="flex-grow">
+      <Outlet />
+    </main>
+    <Footer />
+    <AIChat />
+  </div>
 );
 
 const App: React.FC = () => {
   return (
     <Router>
+      <ScrollToTop />
       <Routes>
-        <Route path="/" element={<Login />} />
-        <Route path="/admin" element={<Dashboard role="Admin" />} />
-        <Route path="/agent" element={<Dashboard role="Agent" />} />
-        <Route path="*" element={<Navigate to="/" />} />
+        {/* Admin Routes */}
+        <Route path="/admin" element={<AdminLayout />}>
+          <Route index element={<AdminDashboard />} />
+          <Route path="agents" element={<Agents />} />
+          <Route path="leads" element={<LeadsManager />} />
+          <Route path="customers" element={<Customers />} />
+          <Route path="requests" element={<AdminRequests />} />
+          <Route path="requests/:id" element={<RequestDetail />} />
+          <Route path="reports" element={<Reports />} />
+          <Route path="payments" element={<Payments />} />
+          <Route path="active-agents" element={<ActiveAgents />} />
+          <Route path="settings" element={<div className="p-8 text-center text-gray-500">Settings Coming Soon</div>} />
+        </Route>
+
+        {/* Public Routes */}
+        <Route element={<PublicLayout />}>
+          <Route path="/" element={<Home />} />
+          <Route path="/broadband" element={<Broadband />} />
+          <Route path="/dth" element={<DTH />} />
+          <Route path="/book" element={<BookConnection />} />
+          <Route path="/support" element={<Support />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/change-password" element={<ChangePassword />} />
+        </Route>
+
+        {/* Agent Routes */}
+        <Route path="/agent" element={<AgentLayout />}>
+          <Route index element={<AgentDashboard />} />
+          <Route path="tasks" element={<AgentTasks />} />
+          <Route path="customers" element={<AgentCustomers />} />
+          <Route path="payments" element={<AgentPayments />} />
+          <Route path="reports" element={<AgentReports />} />
+          <Route path="settings" element={<div className="p-8 text-center text-gray-500 font-sans">Profile Settings Coming Soon</div>} />
+        </Route>
+
+        {/* Customer Routes */}
+        <Route path="/customer" element={<CustomerLayout />}>
+          <Route index element={<CustomerDashboard />} />
+          <Route path="billing" element={<CustomerBilling />} />
+          <Route path="support" element={<CustomerSupport />} />
+          <Route path="plans" element={<div className="p-8 text-center text-gray-500 font-sans">Plan Details Coming Soon</div>} />
+          <Route path="settings" element={<div className="p-8 text-center text-gray-500 font-sans">Account Settings Coming Soon</div>} />
+        </Route>
       </Routes>
     </Router>
   );
-}
+};
 
 export default App;
