@@ -111,9 +111,10 @@ app.post('/api/auth/forgot-password', async (req, res) => {
 app.put('/api/auth/change-password', async (req, res) => {
   const { userId, newPassword } = req.body;
   try {
+    const hashedPassword = await bcrypt.hash(String(newPassword), 10);
     await pool.query(
       'UPDATE users SET password = ?, must_change_password = 0 WHERE id = ?',
-      [newPassword, userId]
+      [hashedPassword, userId]
     );
     res.json({ success: true, message: 'Password changed successfully' });
   } catch (error) {

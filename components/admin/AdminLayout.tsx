@@ -1,6 +1,7 @@
 import React from 'react';
 import { Outlet, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { LayoutDashboard, Users, UserCircle, ClipboardList, Settings, LogOut, Menu, Bell, BarChart3, CreditCard, MapPin, UserPlus, X, CheckCheck } from 'lucide-react';
+import { api } from '../services/api';
 
 const AdminLayout: React.FC = () => {
   const [isSidebarOpen, setIsSidebarOpen] = React.useState(false);
@@ -19,8 +20,7 @@ const AdminLayout: React.FC = () => {
   const fetchNotifications = React.useCallback(async () => {
     if (!adminId) return;
     try {
-      const res = await fetch(`/api/notifications/${adminId}`);
-      const data = await res.json();
+      const data = await api.getNotifications(adminId);
       setNotifications(data.notifications || []);
       setUnreadCount(data.unreadCount || 0);
     } catch {}
@@ -50,13 +50,13 @@ const AdminLayout: React.FC = () => {
   }, [location]);
 
   const handleMarkRead = async (id: number) => {
-    await fetch(`/api/notifications/${id}/read`, { method: 'PUT' });
+    await api.markNotificationRead(id);
     fetchNotifications();
   };
 
   const handleMarkAllRead = async () => {
     if (!adminId) return;
-    await fetch(`/api/notifications/readall/${adminId}`, { method: 'PUT' });
+    await api.markAllNotificationsRead(adminId);
     fetchNotifications();
   };
 

@@ -10,6 +10,39 @@ const API_BASE = window.location.hostname === 'localhost' || window.location.hos
 
 export const api = {
   // Auth
+  updateRequestStatus: async (requestId: string, status: string) => {
+    const res = await fetch(`${API_BASE}/admin/status`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ requestId, status })
+    });
+    return res.json();
+  },
+
+  convertLead: async (leadId: number) => {
+    const res = await fetch(`${API_BASE}/leads/convert`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ leadId })
+    });
+    return res.json();
+  },
+
+  getNotifications: async (adminId: number) => {
+    const res = await fetch(`${API_BASE}/notifications/${adminId}`);
+    return res.json();
+  },
+
+  markNotificationRead: async (id: number) => {
+    const res = await fetch(`${API_BASE}/notifications/${id}/read`, { method: 'PUT' });
+    return res.json();
+  },
+
+  markAllNotificationsRead: async (adminId: number) => {
+    const res = await fetch(`${API_BASE}/notifications/readall/${adminId}`, { method: 'PUT' });
+    return res.json();
+  },
+
   login: async (credentials: any) => {
     const res = await fetch(`${API_BASE}/auth/login`, {
       method: 'POST',
@@ -62,6 +95,24 @@ export const api = {
     return res.json();
   },
 
+  changePassword: async (data: { userId: number, newPassword: string }) => {
+    const res = await fetch(`${API_BASE}/auth/change-password`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+    return res.json();
+  },
+
+  forgotPassword: async (data: { email: string, role: string }) => {
+    const res = await fetch(`${API_BASE}/auth/forgot-password`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+    return res.json();
+  },
+
   createAdminCustomer: async (customerData: any) => {
     const res = await fetch(`${API_BASE}/admin/customers`, {
       method: 'POST',
@@ -109,6 +160,15 @@ export const api = {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ is_active })
+    });
+    return res.json();
+  },
+
+  updateAgentLocation: async (data: { userId: number, lat: number, lng: number }) => {
+    const res = await fetch(`${API_BASE}/agent/location`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
     });
     return res.json();
   },
@@ -165,21 +225,6 @@ export const api = {
 
   getAdminReports: async () => {
     const res = await fetch(`${API_BASE}/admin/reports`);
-    return res.json();
-  },
-
-  getNotifications: async (userId: number) => {
-    const res = await fetch(`${API_BASE.replace('/admin', '')}/notifications/${userId}`);
-    return res.json();
-  },
-
-  markNotificationRead: async (id: number) => {
-    const res = await fetch(`${API_BASE.replace('/admin', '')}/notifications/${id}/read`, { method: 'PUT' });
-    return res.json();
-  },
-
-  markAllNotificationsRead: async (userId: number) => {
-    const res = await fetch(`${API_BASE.replace('/admin', '')}/notifications/readall/${userId}`, { method: 'PUT' });
     return res.json();
   },
 };

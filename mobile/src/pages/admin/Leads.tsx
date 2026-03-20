@@ -32,11 +32,7 @@ const LeadsManager: React.FC = () => {
     
     setProcessingId(lead.id);
     try {
-      const res = await fetch('/api/leads/convert', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ leadId: lead.id })
-      }).then(r => r.json());
+      const res = await api.convertLead(lead.id);
 
       if (res.success) {
         alert(`Successfully onboarded ${lead.name}. Welcome email sent to ${lead.email}`);

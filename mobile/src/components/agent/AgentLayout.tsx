@@ -13,6 +13,7 @@ import {
   MapPin,
   WifiOff
 } from 'lucide-react';
+import { api } from '../services/api';
 
 const AgentLayout: React.FC = () => {
   const [isSidebarOpen, setIsSidebarOpen] = React.useState(false);
@@ -32,15 +33,13 @@ const AgentLayout: React.FC = () => {
         (pos) => {
           setGpsStatus('active');
           console.log(`Pushing location for agent ${user.id}:`, pos.coords.latitude, pos.coords.longitude);
-          fetch('/api/agent/location', {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              userId: user.id,
-              lat: pos.coords.latitude,
-              lng: pos.coords.longitude,
-            }),
-          }).then(r => r.json()).then(d => console.log('Location push response:', d)).catch((err) => console.error('Location push failed:', err));
+          api.updateAgentLocation({
+            userId: user.id,
+            lat: pos.coords.latitude,
+            lng: pos.coords.longitude,
+          })
+          .then(d => console.log('Location push response:', d))
+          .catch((err) => console.error('Location push failed:', err));
         },
         (err) => {
             console.warn('GPS Error:', err.message);

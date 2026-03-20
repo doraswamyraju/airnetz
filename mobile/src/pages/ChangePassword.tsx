@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Lock, Eye, EyeOff, ArrowRight, CheckCircle } from 'lucide-react';
+import { api } from '../services/api';
 
 const ChangePassword: React.FC = () => {
   const [newPassword, setNewPassword] = useState('');
@@ -29,12 +30,7 @@ const ChangePassword: React.FC = () => {
 
     setLoading(true);
     try {
-      const res = await fetch('/api/auth/change-password', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: user.id, newPassword }),
-      });
-      const data = await res.json();
+      const data = await api.changePassword({ userId: user.id, newPassword });
 
       if (data.success) {
         // Update the stored user object so no more forced redirects

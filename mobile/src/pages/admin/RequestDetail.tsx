@@ -50,13 +50,7 @@ const RequestDetail: React.FC = () => {
   const handleStatusChange = async (newStatus: string) => {
     if (!id) return;
     try {
-      // We should probably add an API for this too, but for now let's just update locally 
-      // or implement the API call if it exists. Let's assume we need to implement it.
-      await fetch(`/api/admin/status`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ requestId: id, status: newStatus })
-      });
+      await api.updateRequestStatus(id, newStatus);
       const requests = await api.getAdminRequests();
       setRequest(requests.find((r: any) => r.id === id));
     } catch (err) {
