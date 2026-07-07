@@ -19,7 +19,7 @@ const LeadsManager: React.FC = () => {
   const loadLeads = async () => {
     try {
       const data = await api.getLeads();
-      setLeads(data);
+      setLeads(Array.isArray(data) ? data : []);
     } catch (err) {
       console.error('Failed to load leads');
     } finally {

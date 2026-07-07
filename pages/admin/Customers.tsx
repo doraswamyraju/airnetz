@@ -22,7 +22,7 @@ const Customers: React.FC = () => {
     const fetchCustomers = async () => {
         try {
             const data = await api.getAdminCustomers();
-            setCustomers(data);
+            setCustomers(Array.isArray(data) ? data : []);
         } catch (err) {
             console.error('Failed to fetch customers', err);
         } finally {
@@ -33,7 +33,7 @@ const Customers: React.FC = () => {
     const fetchPlans = async () => {
         try {
             const p = await api.getPlans();
-            setPlans(p);
+            setPlans(Array.isArray(p) ? p : []);
         } catch (err) {
             console.error('Failed to fetch plans', err);
         }

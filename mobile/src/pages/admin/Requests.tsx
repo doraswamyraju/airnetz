@@ -32,8 +32,8 @@ const AdminRequests: React.FC = () => {
           api.getAdminRequests(),
           api.getAgents()
         ]);
-        setRequests(reqData);
-        setAgents(agentData.filter((a: any) => a.is_active !== 0)); // Only show active agents
+        setRequests(Array.isArray(reqData) ? reqData : []);
+        setAgents(Array.isArray(agentData) ? agentData.filter((a: any) => a.is_active !== 0) : []); // Only show active agents
       } catch (err) {
         console.error('Failed to load data');
       } finally {

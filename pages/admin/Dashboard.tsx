@@ -50,8 +50,8 @@ const AdminDashboard: React.FC = () => {
           api.getAgents()
         ]);
         setStats(statsData);
-        setRequests(requestsData);
-        setAgents(agentsData.filter((a: any) => a.is_active));
+        setRequests(Array.isArray(requestsData) ? requestsData : []);
+        setAgents(Array.isArray(agentsData) ? agentsData.filter((a: any) => a.is_active) : []);
       } catch (error) {
         console.error('Failed to fetch dashboard data', error);
       } finally {
