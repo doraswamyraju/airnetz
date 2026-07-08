@@ -95,7 +95,7 @@ app.post('/api/auth/forgot-password', async (req, res) => {
             <p><strong>Email:</strong> ${user.email}</p>
             <p><strong>Temporary Password:</strong> ${tempPassword}</p>
           </div>
-          <p>Please log in at: <a href="http://airnetz.sriddha.com/login" style="color: #f97316;">airnetz.sriddha.com/login</a> to change your password.</p>
+          <p>Please log in at: <a href="http://airnetz.net.in/login" style="color: #f97316;">airnetz.net.in/login</a> to change your password.</p>
         </div>
       `
     };
@@ -417,7 +417,7 @@ app.post('/api/admin/agents', async (req, res) => {
             <p><strong>Email:</strong> ${email}</p>
             <p><strong>Password:</strong> ${defaultPassword}</p>
           </div>
-          <p>Please log in at: <a href="http://airnetz.sriddha.com/login" style="color: #f97316;">airnetz.sriddha.com/login</a></p>
+          <p>Please log in at: <a href="http://airnetz.net.in/login" style="color: #f97316;">airnetz.net.in/login</a></p>
         </div>
       `
     };
@@ -476,7 +476,7 @@ app.post('/api/admin/agents/:id/resend-password', async (req, res) => {
             <p><strong>Email:</strong> ${agent.email}</p>
             <p><strong>New Password:</strong> ${newPassword}</p>
           </div>
-          <p>Please log in at: <a href="http://airnetz.sriddha.com/login" style="color: #f97316;">airnetz.sriddha.com/login</a></p>
+          <p>Please log in at: <a href="http://airnetz.net.in/login" style="color: #f97316;">airnetz.net.in/login</a></p>
         </div>
       `
     };
@@ -593,7 +593,7 @@ app.post('/api/admin/customers', async (req, res) => {
               <p><strong>Email:</strong> ${email}</p>
               <p><strong>Temporary Password:</strong> ${initialPassword}</p>
             </div>
-            <p>Please log in at: <a href="http://airnetz.sriddha.com/login" style="color: #f97316;">airnetz.sriddha.com/login</a> to manage your account and track services.</p>
+            <p>Please log in at: <a href="http://airnetz.net.in/login" style="color: #f97316;">airnetz.net.in/login</a> to manage your account and track services.</p>
           </div>
         `
       };
@@ -650,7 +650,7 @@ app.post('/api/admin/requests', async (req, res) => {
               <p><strong>Login Email:</strong> ${email}</p>
               <p><strong>Temporary Password:</strong> ${initialPassword}</p>
             </div>
-            <p>Login at <a href="http://airnetz.sriddha.com/login" style="color:#f97316;">airnetz.sriddha.com/login</a> to track your ticket!</p>
+            <p>Login at <a href="http://airnetz.net.in/login" style="color:#f97316;">airnetz.net.in/login</a> to track your ticket!</p>
           </div>
         `
       };
@@ -794,7 +794,7 @@ app.post('/api/public/book', async (req, res) => {
           <p>You can now log in to the portal to track your installation progress (Reference: <strong>${requestId}</strong>) and manage your connection.</p>
           
           <div style="text-align: center; margin: 30px 0;">
-            <a href="http://airnetz.sriddha.com/login" style="background: #f97316; color: white; padding: 12px 30px; border-radius: 8px; text-decoration: none; font-weight: bold; display: inline-block;">Login to Customer Portal</a>
+            <a href="http://airnetz.net.in/login" style="background: #f97316; color: white; padding: 12px 30px; border-radius: 8px; text-decoration: none; font-weight: bold; display: inline-block;">Login to Customer Portal</a>
           </div>
 
           <p>Our representative will also call you at <strong>${phone}</strong> within 24 hours.</p>
@@ -892,7 +892,7 @@ app.post('/api/leads/convert', async (req, res) => {
               <p><strong>Email:</strong> ${lead.email}</p>
               <p><strong>Password:</strong> ${initialPassword}</p>
             </div>
-            <p>You can login at: <a href="http://airnetz.sriddha.com/login" style="color: #f97316; font-weight: bold;">airnetz.sriddha.com/login</a></p>
+            <p>You can login at: <a href="http://airnetz.net.in/login" style="color: #f97316; font-weight: bold;">airnetz.net.in/login</a></p>
             <p>Please change your password after logging in for the first time.</p>
             <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 30px 0;">
             <p style="font-size: 12px; color: #9ca3af;">Airnetz Tirupati - High Speed Fiber Broadband</p>

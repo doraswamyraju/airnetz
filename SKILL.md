@@ -19,7 +19,7 @@ The application runs on port `5005`.
 
 ## Production & VPS Deployment
 
-This application is intended to run on a Hostinger VPS under the subdomain `airnetz.sriddha.com`.
+This application is intended to run on a Hostinger VPS under the domain `airnetz.net.in`.
 
 ### Port Configuration
 - The specific port allocated for this application is **5005**.
@@ -29,12 +29,12 @@ This application is intended to run on a Hostinger VPS under the subdomain `airn
 
 1. **Create Subdomain**:
    - Go to your Hostinger VPS control panel (or Cyberpanel/aaPanel depending on what you use).
-   - Add the subdomain `airnetz.sriddha.com`.
+   - Add the domain `airnetz.net.in`.
    - Point the DNS A record of `airnetz` to your VPS IP address.
 
 2. **Pull Code**:
    - SSH into your VPS.
-   - Navigate to the subdomain's document root (e.g., `/var/www/airnetz.sriddha.com` or similar depending on the server stack).
+   - Navigate to the domain's document root (e.g., `/var/www/airnetz.net.in` or similar depending on the server stack).
    - Git clone or pull the repository:
      ```bash
      git clone <your-repo-url> .
@@ -58,7 +58,7 @@ This application is intended to run on a Hostinger VPS under the subdomain `airn
      ```nginx
      server {
          listen 80;
-         server_name airnetz.sriddha.com;
+         server_name airnetz.net.in;
      
          location / {
              proxy_pass http://127.0.0.0:5005;

@@ -6,7 +6,7 @@
 // In production/mobile mode, we need the absolute URL of the backend
 const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
   ? '/api' 
-  : 'https://airnetz.sriddha.com/api';
+  : 'https://airnetz.net.in/api';
 
 export const api = {
   // Auth

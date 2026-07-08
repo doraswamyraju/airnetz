@@ -55,7 +55,7 @@ const Login: React.FC = () => {
     try {
       // Create ad-hoc fetch since we didn't add forgotPassword to api.ts yet
       // (Using the api object's API_BASE internally or a helper)
-      const API_BASE = 'https://airnetz.sriddha.com/api';
+      const API_BASE = 'https://airnetz.net.in/api';
       const response = await fetch(`${API_BASE}/auth/forgot-password`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

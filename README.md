@@ -21,11 +21,11 @@ View your app in AI Studio: https://ai.studio/apps/f3ccb8bd-c087-4fe2-b570-f69d7
 
 ## Production VPS Deployment
 
-Deploying updates to the live server at `airnetz.sriddha.com` can be done using the following steps:
+Deploying updates to the live server at `airnetz.net.in` can be done using the following steps:
 
 ```bash
 # 1. Navigate to the project root directory on the VPS
-cd /var/www/airnetz.sriddha.com
+cd /var/www/airnetz.net.in
 
 # 2. Pull the latest code from GitHub
 git pull origin main

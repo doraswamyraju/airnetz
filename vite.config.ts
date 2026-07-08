@@ -8,7 +8,7 @@ export default defineConfig(({ mode }) => {
     server: {
       port: 5005,
       host: '0.0.0.0',
-      allowedHosts: ['airnetz.sriddha.com'],
+      allowedHosts: ['airnetz.net.in'],
     },
     plugins: [react()],
     define: {
