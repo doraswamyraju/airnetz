@@ -16,6 +16,8 @@
     "moduleDetection": "force",
     "allowJs": true,
     "jsx": "react",
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
     "paths": {
       "@/*": [
         "./*"

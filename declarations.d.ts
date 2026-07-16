@@ -1,4 +1,12 @@
-declare module 'react' {
+declare namespace React {
+  export type ReactNode = any;
+  export type FC<P = {}> = any;
+  export type FormEvent<T = any> = any;
+  export type ChangeEvent<T = any> = any;
+  export type CSSProperties = any;
+  export type RefObject<T> = any;
+  export type ComponentType<T = any> = any;
+  
   export const useState: any;
   export const useEffect: any;
   export const useRef: any;
@@ -8,37 +16,15 @@ declare module 'react' {
   export const useMemo: any;
   export const useCallback: any;
   export const StrictMode: any;
-  export type ReactNode = any;
-  export type FC<P = {}> = any;
-  export type FormEvent<T = any> = any;
-  export type ChangeEvent<T = any> = any;
-  export type CSSProperties = any;
-  export type RefObject<T> = any;
-  export type ComponentType<T = any> = any;
+  export const Component: any;
+}
 
-  const React: {
-    useState: typeof useState;
-    useEffect: typeof useEffect;
-    useRef: typeof useRef;
-    useContext: typeof useContext;
-    createContext: typeof createContext;
-    memo: typeof memo;
-    useMemo: typeof useMemo;
-    useCallback: typeof useCallback;
-    StrictMode: typeof StrictMode;
-    FC: FC;
-    Component: any;
-  };
-  
-  export default React;
+declare module 'react' {
+  export = React;
 }
 
 declare module 'react-dom/client' {
   export const createRoot: any;
-  const ReactDOM: {
-    createRoot: typeof createRoot;
-  };
-  export default ReactDOM;
 }
 
 declare module 'react-router-dom' {
