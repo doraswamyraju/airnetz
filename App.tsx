@@ -21,6 +21,8 @@ import ActiveAgents from './pages/admin/ActiveAgents';
 import LeadsManager from './pages/admin/Leads';
 import Login from './pages/Login';
 import ChangePassword from './pages/ChangePassword';
+import PrivacyPolicy from './pages/PrivacyPolicy';
+import TermsOfUse from './pages/TermsOfUse';
 import AgentLayout from './components/agent/AgentLayout';
 import AgentDashboard from './pages/agent/AgentDashboard';
 import AgentTasks from './pages/agent/Tasks';
@@ -81,6 +83,8 @@ const App: React.FC = () => {
           <Route path="/support" element={<Support />} />
           <Route path="/login" element={<Login />} />
           <Route path="/change-password" element={<ChangePassword />} />
+          <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+          <Route path="/terms-of-use" element={<TermsOfUse />} />
         </Route>
 
         {/* Agent Routes */}
