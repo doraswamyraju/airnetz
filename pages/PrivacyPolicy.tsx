@@ -1,5 +1,5 @@
 import React from 'react';
-import { Shield, Lock, Eye, FileText, Mail, Phone, MapPin, AlertTriangle } from 'lucide-react';
+import { Shield, Lock, Eye, Mail, Phone, MapPin, AlertTriangle } from 'lucide-react';
 
 const PrivacyPolicy: React.FC = () => {
   return (
