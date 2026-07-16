@@ -35,7 +35,7 @@ const Support: React.FC = () => {
               </div>
               <h3 className="text-lg font-bold text-gray-900 mb-1">Call Us</h3>
               <p className="text-gray-500 text-sm mb-3">Customer Care (24/7)</p>
-              <p className="text-xl font-bold text-primary-700">+91 98765 43210</p>
+              <p className="text-xl font-bold text-primary-700">+91 73373 23928</p>
             </div>
 
             <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 transition-shadow hover:shadow-md">
@@ -44,7 +44,7 @@ const Support: React.FC = () => {
               </div>
               <h3 className="text-lg font-bold text-gray-900 mb-1">Email Us</h3>
               <p className="text-gray-500 text-sm mb-3">Support & Billing Queries</p>
-              <p className="text-lg font-medium text-gray-900">support@airnetz.in</p>
+              <p className="text-lg font-medium text-gray-900">support@airnetz.net.in</p>
             </div>
 
              <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 transition-shadow hover:shadow-md">
@@ -54,7 +54,7 @@ const Support: React.FC = () => {
               <h3 className="text-lg font-bold text-gray-900 mb-1">WhatsApp Support</h3>
               <p className="text-gray-500 text-sm mb-3">Chat for Quick Help</p>
               <a 
-                href="https://wa.me/919876543210" 
+                href="https://wa.me/917337323928" 
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="inline-flex items-center text-green-600 font-bold hover:underline"

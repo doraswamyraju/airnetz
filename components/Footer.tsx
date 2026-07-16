@@ -46,15 +46,15 @@ const Footer: React.FC = () => {
             <ul className="space-y-3 text-sm text-slate-300">
               <li className="flex items-start">
                 <MapPin size={18} className="mr-2 flex-shrink-0 text-brand-orange" />
-                <span>#42, Temple Road, Near Bus Stand, Tirupati, Andhra Pradesh - 517501</span>
+                <span>Flat.No.104, 1st Floor, Royal Residency, Opp. Sachivalayam, Kennedy nagar, Tirupati - 517501</span>
               </li>
               <li className="flex items-center">
                 <Phone size={18} className="mr-2 text-brand-orange" />
-                <span>+91 98765 43210</span>
+                <span>+91 73373 23928</span>
               </li>
               <li className="flex items-center">
                 <Mail size={18} className="mr-2 text-brand-orange" />
-                <span>support@airnetz.in</span>
+                <span>support@airnetz.net.in</span>
               </li>
             </ul>
           </div>

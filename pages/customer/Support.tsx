@@ -124,7 +124,7 @@ const CustomerSupport: React.FC = () => {
                  </div>
                  <div className="p-4 bg-white/5 rounded-2xl border border-white/10">
                     <p className="text-xs text-slate-500 font-bold uppercase mb-1">Technical Support</p>
-                    <p className="font-bold">support@airnetz.com</p>
+                    <p className="font-bold">support@airnetz.net.in</p>
                  </div>
               </div>
            </div>

@@ -99,7 +99,7 @@ const TermsOfUse = () => {
               <strong>Infringement Policy:</strong> Airnetz Broadband Services Pvt Ltd respects the intellectual property rights of others. The user must ensure that files, data, or information shared, copied, uploaded, or downloaded do not infringe third-party rights. Airnetz Broadband Services Pvt Ltd shall immediately delete or erase any such information on receiving notice of infringement from third parties or law enforcement authorities, without prior notice to the user.
             </p>
             <p>
-              Any complaints regarding intellectual property infringement may be sent to our support email at: <span className="font-semibold text-brand-orange">support@airnetz.in</span>.
+              Any complaints regarding intellectual property infringement may be sent to our support email at: <span className="font-semibold text-brand-orange">support@airnetz.net.in</span>.
             </p>
           </section>
 
@@ -127,7 +127,7 @@ const TermsOfUse = () => {
               All sales of Recharge are final, and there will be no refund or exchange permitted. You are solely responsible for verifying the customer account number you purchase Recharge for. The company is not responsible for any purchase of Recharge for an incorrect account number.
             </p>
             <div className="bg-yellow-50 border border-yellow-100 rounded-2xl p-5 text-sm md:text-base">
-              <strong>Failed Transaction Clause:</strong> In a case where a transaction has been completed by you on our site, and money has been charged to your card or bank account but a Recharge has not been delivered within 24 hours of your completion of the transaction, you may inform us by sending an email to <span className="font-bold">support@airnetz.in</span>. In such a scenario, you will be entitled to a full refund. 
+              <strong>Failed Transaction Clause:</strong> In a case where a transaction has been completed by you on our site, and money has been charged to your card or bank account but a Recharge has not been delivered within 24 hours of your completion of the transaction, you may inform us by sending an email to <span className="font-bold">support@airnetz.net.in</span>. In such a scenario, you will be entitled to a full refund. 
               <br /><br />
               Please include:
               <ul className="list-disc pl-6 mt-2 space-y-1">
@@ -175,7 +175,7 @@ const TermsOfUse = () => {
                 <MapPin className="text-brand-orange flex-shrink-0 mt-1" size={18} />
                 <div className="text-sm">
                   <span className="font-semibold block text-gray-900">Registered Office</span>
-                  <span className="text-gray-500">#42, Temple Road, Near Bus Stand, Tirupati, Andhra Pradesh - 517501</span>
+                  <span className="text-gray-500">Flat.No.104, 1st Floor, Royal Residency, Opp. Sachivalayam, Kennedy nagar, Tirupati - 517501</span>
                 </div>
               </div>
 
@@ -183,7 +183,7 @@ const TermsOfUse = () => {
                 <Mail className="text-brand-orange flex-shrink-0 mt-1" size={18} />
                 <div className="text-sm">
                   <span className="font-semibold block text-gray-900">Support Email</span>
-                  <span className="text-gray-500">support@airnetz.in</span>
+                  <span className="text-gray-500">support@airnetz.net.in</span>
                 </div>
               </div>
 
@@ -191,7 +191,7 @@ const TermsOfUse = () => {
                 <Phone className="text-brand-orange flex-shrink-0 mt-1" size={18} />
                 <div className="text-sm">
                   <span className="font-semibold block text-gray-900">Phone Help</span>
-                  <span className="text-gray-500">+91 98765 43210</span>
+                  <span className="text-gray-500">+91 73373 23928</span>
                 </div>
               </div>
             </div>

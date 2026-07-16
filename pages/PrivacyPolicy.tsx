@@ -100,7 +100,7 @@ const PrivacyPolicy = () => {
                 <MapPin className="text-brand-orange flex-shrink-0 mt-1" size={18} />
                 <div className="text-sm">
                   <span className="font-semibold block text-gray-900">Head Office</span>
-                  <span className="text-gray-500">#42, Temple Road, Near Bus Stand, Tirupati, Andhra Pradesh - 517501</span>
+                  <span className="text-gray-500">Flat.No.104, 1st Floor, Royal Residency, Opp. Sachivalayam, Kennedy nagar, Tirupati - 517501</span>
                 </div>
               </div>
 
@@ -108,7 +108,7 @@ const PrivacyPolicy = () => {
                 <Mail className="text-brand-orange flex-shrink-0 mt-1" size={18} />
                 <div className="text-sm">
                   <span className="font-semibold block text-gray-900">Email Address</span>
-                  <span className="text-gray-500">support@airnetz.in</span>
+                  <span className="text-gray-500">support@airnetz.net.in</span>
                 </div>
               </div>
 
@@ -116,7 +116,7 @@ const PrivacyPolicy = () => {
                 <Phone className="text-brand-orange flex-shrink-0 mt-1" size={18} />
                 <div className="text-sm">
                   <span className="font-semibold block text-gray-900">Helpline</span>
-                  <span className="text-gray-500">+91 98765 43210</span>
+                  <span className="text-gray-500">+91 73373 23928</span>
                 </div>
               </div>
             </div>
