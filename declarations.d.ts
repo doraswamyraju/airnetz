@@ -7,14 +7,14 @@ declare namespace React {
   export type RefObject<T> = any;
   export type ComponentType<T = any> = any;
   
-  export const useState: any;
-  export const useEffect: any;
-  export const useRef: any;
-  export const useContext: any;
-  export const createContext: any;
-  export const memo: any;
-  export const useMemo: any;
-  export const useCallback: any;
+  export function useState<T = any>(initialState: T | (() => T)): [T, (val: T | ((prev: T) => T)) => void];
+  export function useEffect(effect: () => void | (() => void), deps?: any[]): void;
+  export function useRef<T = any>(initialValue: T): { current: T };
+  export function useContext<T = any>(context: any): T;
+  export function createContext<T = any>(defaultValue: T): any;
+  export function memo<T = any>(component: T): T;
+  export function useMemo<T = any>(factory: () => T, deps: any[] | undefined): T;
+  export function useCallback<T extends (...args: any[]) => any>(callback: T, deps: any[]): T;
   export const StrictMode: any;
   export const Component: any;
 }

@@ -222,11 +222,45 @@ const Login: React.FC = () => {
                   loading ? 'opacity-70 cursor-not-allowed' : ''
                 } ${
                   role === 'admin' ? 'bg-slate-900 shadow-slate-200' : 
-                  role === 'employee' ? 'bg-orange-600 shadow-orange-200' : 'bg-primary-600 shadow-primary-200'
+                  role === 'agent' ? 'bg-orange-600 shadow-orange-200' : 'bg-primary-600 shadow-primary-200'
                 }`}
               >
                 {loading ? 'Signing In...' : 'Sign In'} <ArrowRight size={20} />
               </button>
+
+              {role === 'customer' && (
+                <>
+                  <div className="relative flex py-2 items-center">
+                    <div className="flex-grow border-t border-gray-200"></div>
+                    <span className="flex-shrink mx-4 text-gray-400 text-xs font-semibold uppercase tracking-wider">or</span>
+                    <div className="flex-grow border-t border-gray-200"></div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => window.location.href = 'https://user.airnetz.net.in'}
+                    className="w-full py-4 rounded-2xl border-2 border-primary-600 text-primary-600 hover:bg-primary-50 font-bold text-lg shadow-md transition-all hover:-translate-y-1 active:scale-95 flex items-center justify-center gap-2"
+                  >
+                    Login into User Panel <ArrowRight size={20} />
+                  </button>
+                </>
+              )}
+
+              {role === 'admin' && (
+                <>
+                  <div className="relative flex py-2 items-center">
+                    <div className="flex-grow border-t border-gray-200"></div>
+                    <span className="flex-shrink mx-4 text-gray-400 text-xs font-semibold uppercase tracking-wider">or</span>
+                    <div className="flex-grow border-t border-gray-200"></div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => window.location.href = 'https://admin.airnetz.net.in'}
+                    className="w-full py-4 rounded-2xl border-2 border-slate-900 text-slate-900 hover:bg-slate-50 font-bold text-lg shadow-md transition-all hover:-translate-y-1 active:scale-95 flex items-center justify-center gap-2"
+                  >
+                    Login into Admin Panel <ArrowRight size={20} />
+                  </button>
+                </>
+              )}
             </form>
           )}
         </div>

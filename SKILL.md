@@ -46,22 +46,47 @@ This application is intended to run on a Hostinger VPS under the domain `airnetz
    ```
 
 4. **Build and Run**:
-   - Depending on how you serve Node.js/React applications on your VPS, you can either build it for production (`npm run build`) and serve the `dist` folder via Nginx/Apache.
-   - OR, if serving via a process manager like PM2:
+   - For a production deployment, build the React/Vite frontend static files and serve the `dist` folder via Nginx.
      ```bash
-     pm2 start npm --name "airnetz-frontend" -- run dev
+     npm run build
      ```
-   *(Note: For a React/Vite app, it's highly recommended to build and serve statically via Nginx, proxying if necessary).*
+   - Alternatively, if running the development server under PM2 (for staging/testing):
+     ```bash
+     pm2 start npm --name "airnetz-frontend" -- run dev -- --port 5005
+     ```
+   - To deploy and run the Node.js backend:
+     ```bash
+     cd server
+     npm install
+     node migrate.js
+     pm2 start server.js --name "airnetz-backend"
+     ```
 
 5. **Nginx Reverse Proxy**:
-   - Since the app uses port 5005, your Nginx configuration for the subdomain should proxy traffic to this port:
+   - Setup a reverse proxy configuration block for your domain / subdomain to forward requests to the frontend port (5005) or serve static files directly:
      ```nginx
      server {
          listen 80;
          server_name airnetz.net.in;
      
+         # Option A: Serve built static files directly (Recommended)
          location / {
-             proxy_pass http://127.0.0.0:5005;
+             root /var/www/airnetz.net.in/dist;
+             try_files $uri $uri/ /index.html;
+         }
+
+         # Option B: Reverse proxy to PM2 runner (if running dev server on 5005)
+         # location / {
+         #     proxy_pass http://127.0.0.1:5005;
+         #     proxy_http_version 1.1;
+         #     proxy_set_header Upgrade $http_upgrade;
+         #     proxy_set_header Connection 'upgrade';
+         #     proxy_set_header Host $host;
+         #     proxy_cache_bypass $http_upgrade;
+         # }
+
+         location /api {
+             proxy_pass http://127.0.0.1:5000; # Assuming backend runs on 5000
              proxy_http_version 1.1;
              proxy_set_header Upgrade $http_upgrade;
              proxy_set_header Connection 'upgrade';
