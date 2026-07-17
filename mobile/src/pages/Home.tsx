@@ -14,7 +14,7 @@ const Home: React.FC = () => {
   };
 
   const stats = [
-    { label: 'Happy Families', value: '50k+', icon: Users },
+    { label: 'Happy Families', value: '5k+', icon: Users },
     { label: 'Uptime Guarantee', value: '99.9%', icon: ShieldCheck },
     { label: 'Max Speed', value: '1 Gbps', icon: Zap },
     { label: 'Support', value: '24/7', icon: Headphones },
